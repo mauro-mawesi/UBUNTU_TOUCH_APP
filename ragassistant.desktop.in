@@ -1,6 +1,6 @@
 [Desktop Entry]
 _Name=RAG Assistant
-Exec=qmlscene %U qml/Main.qml
+Exec=ragassistant %U
 Icon=assets/logo.svg
 Terminal=false
 Type=Application

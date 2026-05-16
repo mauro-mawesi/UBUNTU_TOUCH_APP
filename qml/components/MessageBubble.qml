@@ -1,4 +1,5 @@
 import QtQuick 2.7
+import QtQuick.Layouts 1.3
 import Lomiri.Components 1.3
 import "../js/Markdown.js" as Markdown
 
@@ -12,6 +13,8 @@ Item {
     property string phase: ""
     property var i18nApp
     property var appTheme
+    property bool speaking: false
+    signal speakRequested()
 
     readonly property bool isUser: role === "user"
     readonly property bool isSystem: role === "system"
@@ -64,52 +67,88 @@ Item {
             }
         }
 
-        // F1: copy button (top-right of the bubble). Hidden while streaming
-        // or when there is no text yet.
-        Rectangle {
-            id: copyBtn
-            visible: bubble.text.length > 0 && !bubble.streaming
+        // F1 + speaker: action buttons grouped at the top-right of the bubble.
+        Row {
+            id: bubbleActions
             anchors {
                 top: parent.top
                 right: parent.right
                 topMargin: units.gu(0.6)
                 rightMargin: units.gu(0.6)
             }
-            width: units.gu(2.6); height: units.gu(2.6)
-            radius: width / 2
-            color: copyMouse.pressed
-                   ? (bubble.isUser ? Qt.rgba(1, 1, 1, 0.32) : appTheme.surfaceHover)
-                   : (copyMouse.containsMouse
-                      ? (bubble.isUser ? Qt.rgba(1, 1, 1, 0.22) : appTheme.surfaceAlt)
-                      : "transparent")
-            opacity: copyMouse.containsMouse ? 1.0 : 0.55
-            Behavior on opacity { NumberAnimation { duration: 120 } }
+            spacing: units.gu(0.2)
             z: 2
 
-            property bool justCopied: false
+            // Speaker button (only on assistant bubbles with content)
+            Rectangle {
+                id: speakBtn
+                visible: !bubble.isUser && !bubble.isSystem && bubble.text.length > 0 && !bubble.streaming
+                width: units.gu(2.6); height: units.gu(2.6)
+                radius: width / 2
+                color: bubble.speaking
+                       ? appTheme.primary
+                       : (speakerMouse.pressed
+                          ? appTheme.surfaceHover
+                          : (speakerMouse.containsMouse ? appTheme.surfaceAlt : "transparent"))
+                opacity: bubble.speaking || speakerMouse.containsMouse ? 1.0 : 0.55
+                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on opacity { NumberAnimation { duration: 120 } }
 
-            Icon {
-                anchors.centerIn: parent
-                width: units.gu(1.6); height: width
-                name: copyBtn.justCopied ? "ok" : "edit-copy"
-                color: bubble.isUser ? "white" : appTheme.textSecondary
+                Icon {
+                    anchors.centerIn: parent
+                    width: units.gu(1.6); height: width
+                    name: bubble.speaking ? "media-playback-stop" : "audio-speakers-symbolic"
+                    color: bubble.speaking ? "white" : appTheme.textSecondary
+                }
+
+                MouseArea {
+                    id: speakerMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: bubble.speakRequested()
+                }
             }
 
-            Timer {
-                id: copiedTimer
-                interval: 900
-                onTriggered: copyBtn.justCopied = false
-            }
+            // Copy button
+            Rectangle {
+                id: copyBtn
+                visible: bubble.text.length > 0 && !bubble.streaming
+                width: units.gu(2.6); height: units.gu(2.6)
+                radius: width / 2
+                color: copyMouse.pressed
+                       ? (bubble.isUser ? Qt.rgba(1, 1, 1, 0.32) : appTheme.surfaceHover)
+                       : (copyMouse.containsMouse
+                          ? (bubble.isUser ? Qt.rgba(1, 1, 1, 0.22) : appTheme.surfaceAlt)
+                          : "transparent")
+                opacity: copyMouse.containsMouse ? 1.0 : 0.55
+                Behavior on opacity { NumberAnimation { duration: 120 } }
 
-            MouseArea {
-                id: copyMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    clipboardHelper.copyText(bubble.text);
-                    copyBtn.justCopied = true;
-                    copiedTimer.restart();
+                property bool justCopied: false
+
+                Icon {
+                    anchors.centerIn: parent
+                    width: units.gu(1.6); height: width
+                    name: copyBtn.justCopied ? "ok" : "edit-copy"
+                    color: bubble.isUser ? "white" : appTheme.textSecondary
+                }
+
+                Timer {
+                    id: copiedTimer
+                    interval: 900
+                    onTriggered: copyBtn.justCopied = false
+                }
+
+                MouseArea {
+                    id: copyMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        clipboardHelper.copyText(bubble.text);
+                        copyBtn.justCopied = true;
+                        copiedTimer.restart();
+                    }
                 }
             }
         }
@@ -126,11 +165,14 @@ Item {
             spacing: units.gu(0.7)
             z: 1
 
-            Row {
+            RowLayout {
+                width: parent.width
                 spacing: units.gu(0.6)
 
                 Rectangle {
-                    width: units.gu(2); height: units.gu(2)
+                    Layout.preferredWidth: units.gu(2)
+                    Layout.preferredHeight: units.gu(2)
+                    Layout.alignment: Qt.AlignVCenter
                     radius: width / 2
                     color: bubble.isUser ? Qt.rgba(1, 1, 1, 0.25)
                                          : (bubble.isSystem ? appTheme.warning : appTheme.primary)
@@ -143,12 +185,15 @@ Item {
                     }
                 }
                 Label {
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.rightMargin: bubbleActions.width + units.gu(0.8)
                     text: bubble.isUser ? i18nApp.tr("You")
                                         : (bubble.isSystem ? i18nApp.tr("System") : i18nApp.tr("Assistant"))
                     textSize: Label.XSmall
                     color: bubble.isUser ? Qt.rgba(1, 1, 1, 0.85) : appTheme.textSecondary
                     font.bold: true
-                    anchors.verticalCenter: parent.verticalCenter
+                    elide: Text.ElideRight
                 }
             }
 

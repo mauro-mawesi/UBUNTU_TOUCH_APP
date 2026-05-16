@@ -303,6 +303,47 @@ Page {
                 }
             }
 
+            // ---------- Voice (TTS) ----------
+            Card {
+                Layout.fillWidth: true
+                appTheme: page.appTheme
+                sectionTitle: i18nApp.tr("Voice (TTS)")
+
+                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; text: i18nApp.tr("Base URL") }
+                StyledField {
+                    Layout.fillWidth: true
+                    appTheme: page.appTheme
+                    text: appSettings.ttsUrl
+                    onTextChanged: appSettings.ttsUrl = text
+                }
+
+                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; text: i18nApp.tr("Voice (empty = auto by language)") }
+                StyledField {
+                    Layout.fillWidth: true
+                    appTheme: page.appTheme
+                    placeholderText: "af_bella"
+                    text: appSettings.ttsVoice
+                    onTextChanged: appSettings.ttsVoice = text
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.topMargin: units.gu(0.8)
+                    spacing: units.gu(0.8)
+
+                    Label {
+                        Layout.fillWidth: true
+                        text: i18nApp.tr("Auto-speak assistant replies")
+                        color: appTheme.text
+                        textSize: Label.Small
+                    }
+                    Switch {
+                        checked: appSettings.ttsAutoSpeak
+                        onCheckedChanged: appSettings.ttsAutoSpeak = checked
+                    }
+                }
+            }
+
             // ---------- Connectivity test ----------
             Card {
                 id: connectivityCard

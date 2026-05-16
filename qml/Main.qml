@@ -34,6 +34,9 @@ MainView {
         i18nApp.language = appSettings.language.length > 0
                            ? appSettings.language
                            : i18nApp.detect(Qt.locale().name);
+        // Hand off to SplashScreen — it still respects its minVisibleMs
+        // so the splash never flashes by even on a fast cold start.
+        splash.ready = true;
     }
 
     Connections {
@@ -69,6 +72,13 @@ MainView {
 
         property string ollamaUrl: "http://172.28.18.200:11434"
         property string embedModel: "nomic-embed-text"
+
+        property string whisperUrl: "http://172.28.18.200:3011"
+        property string whisperModel: "Systran/faster-whisper-small"
+
+        property string ttsUrl: "http://172.28.18.200:8880"
+        property string ttsVoice: ""   // empty = auto by language
+        property bool ttsAutoSpeak: false
     }
 
     PageStack {
@@ -92,5 +102,13 @@ MainView {
         appSettings: appSettings
         i18nApp: i18nApp
         appTheme: appTheme
+    }
+
+    SplashScreen {
+        id: splash
+        anchors.fill: parent
+        appTheme: appTheme
+        i18nApp: i18nApp
+        minVisibleMs: 2200   // total visible time floor (ms); bump up/down to taste
     }
 }

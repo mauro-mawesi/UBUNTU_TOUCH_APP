@@ -1,7 +1,9 @@
 import QtQuick 2.7
+import QtMultimedia 5.6
 import Lomiri.Components 1.3
 import Lomiri.Components.Popups 1.3
 import QtQuick.Layouts 1.3
+import Ragassistant.Audio 1.0
 import "components"
 import "js/RagOrchestrator.js" as Rag
 import "js/Store.js" as Store
@@ -118,6 +120,92 @@ Page {
 
     ListModel { id: messagesModel }
 
+    // ---- speech to text ----
+    AudioRecorder {
+        id: recorder
+        onRecordingFinished: {
+            console.log("[mic] recording finished, file=" + filePath);
+            whisper.transcribe(appSettings.whisperUrl, filePath,
+                               i18nApp.language, appSettings.whisperModel);
+        }
+        onErrorOccurred: {
+            console.log("[mic] recorder error: " + message);
+            appendMessage("system", "🎙 " + message, [], false);
+        }
+    }
+
+    WhisperClient {
+        id: whisper
+        onTranscribed: {
+            console.log("[mic] transcribed: " + text.substring(0, 80));
+            if (text && text.trim().length > 0) {
+                input.text = (input.text.length > 0 ? input.text + " " : "") + text.trim();
+            }
+        }
+        onErrorOccurred: {
+            console.log("[mic] whisper error: " + message);
+            appendMessage("system", "🎙 " + message, [], false);
+        }
+    }
+
+    // ---- text to speech ----
+    property int speakingIndex: -1     // model index currently being spoken (or -1)
+
+    function voiceForLanguage(lang) {
+        if (appSettings.ttsVoice && appSettings.ttsVoice.length > 0) return appSettings.ttsVoice;
+        if (lang === "es") return "ef_dora";
+        if (lang === "nl") return "af_bella";
+        return "af_bella";
+    }
+
+    function speakMessage(idx) {
+        if (idx < 0 || idx >= messagesModel.count) return;
+        var msg = messagesModel.get(idx);
+        if (!msg || !msg.content || msg.content.length === 0) return;
+        if (ttsPlayer.playbackState === MediaPlayer.PlayingState) {
+            ttsPlayer.stop();
+            tts.cancel();
+            if (speakingIndex === idx) { speakingIndex = -1; return; }
+        }
+        speakingIndex = idx;
+        tts.synthesize(appSettings.ttsUrl, msg.content,
+                       voiceForLanguage(i18nApp.language), "mp3");
+    }
+
+    function stopSpeaking() {
+        ttsPlayer.stop();
+        tts.cancel();
+        speakingIndex = -1;
+    }
+
+    TtsClient {
+        id: tts
+        onAudioReady: {
+            console.log("[tts] audio ready: " + filePath);
+            ttsPlayer.source = "";  // force reload
+            ttsPlayer.source = "file://" + filePath;
+            ttsPlayer.play();
+        }
+        onErrorOccurred: {
+            console.log("[tts] error: " + message);
+            speakingIndex = -1;
+        }
+    }
+
+    MediaPlayer {
+        id: ttsPlayer
+        autoLoad: true
+        onStopped: {
+            if (status === MediaPlayer.EndOfMedia || status === MediaPlayer.NoMedia) {
+                speakingIndex = -1;
+            }
+        }
+        onError: {
+            console.log("[tts] player error: " + errorString);
+            speakingIndex = -1;
+        }
+    }
+
     function appendMessage(role, content, sources, streaming, phase) {
         messagesModel.append({
             role: role,
@@ -228,6 +316,9 @@ Page {
                 refreshConversations();
                 busy = false;
                 activeXhr = null;
+                if (appSettings.ttsAutoSpeak && finalText.length > 0) {
+                    speakMessage(messagesModel.count - 1);
+                }
             },
             onError: function(err) {
                 console.log("[chat] onError: " + err);
@@ -287,7 +378,8 @@ Page {
                         visible: messagesModel.count === 0
 
                         ColumnLayout {
-                            anchors.centerIn: parent
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.verticalCenter: parent.verticalCenter
                             width: Math.min(parent.width, units.gu(50))
                             spacing: units.gu(1.5)
 
@@ -388,6 +480,8 @@ Page {
                             phase: model.phase || ""
                             i18nApp: page.i18nApp
                             appTheme: page.appTheme
+                            speaking: page.speakingIndex === index
+                            onSpeakRequested: page.speakMessage(index)
                         }
                     }
 
@@ -462,17 +556,92 @@ Page {
                             Layout.fillWidth: true
                             Layout.alignment: Qt.AlignVCenter
                             Layout.preferredHeight: Math.min(units.gu(14), Math.max(units.gu(4.5), contentHeight + units.gu(2)))
-                            placeholderText: i18nApp.tr("Ask about your documents…")
+                            placeholderText: recorder.recording
+                                             ? i18nApp.tr("Listening…")
+                                             : (whisper.busy
+                                                ? i18nApp.tr("Transcribing…")
+                                                : i18nApp.tr("Ask about your documents…"))
                             wrapMode: TextEdit.Wrap
                             color: appTheme.text
                             autoSize: true
                             maximumLineCount: 6
+                            enabled: !recorder.recording && !whisper.busy
                             Keys.onReturnPressed: {
                                 if (event.modifiers & Qt.ShiftModifier) { event.accepted = false; }
                                 else { event.accepted = true; sendQuery(input.text); }
                             }
                         }
 
+                        // Mic button
+                        Rectangle {
+                            id: micBtn
+                            Layout.alignment: Qt.AlignVCenter
+                            Layout.preferredWidth: units.gu(4.5)
+                            Layout.preferredHeight: units.gu(4.5)
+                            radius: width / 2
+                            color: recorder.recording
+                                   ? appTheme.danger
+                                   : (whisper.busy ? appTheme.surfaceHover
+                                     : (micMouse.containsMouse ? appTheme.surfaceHover : "transparent"))
+                            border.color: recorder.recording ? appTheme.danger : appTheme.border
+                            border.width: 1
+                            visible: !page.busy
+                            Behavior on color { ColorAnimation { duration: 120 } }
+
+                            // Pulsing ring while recording
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: parent.width
+                                height: parent.height
+                                radius: width / 2
+                                color: "transparent"
+                                border.color: appTheme.danger
+                                border.width: 2
+                                visible: recorder.recording
+                                SequentialAnimation on opacity {
+                                    loops: Animation.Infinite
+                                    running: recorder.recording
+                                    NumberAnimation { to: 0.0; duration: 800; easing.type: Easing.OutQuad }
+                                    NumberAnimation { to: 1.0; duration: 800; easing.type: Easing.InQuad }
+                                }
+                                SequentialAnimation on scale {
+                                    loops: Animation.Infinite
+                                    running: recorder.recording
+                                    NumberAnimation { to: 1.6; duration: 800; easing.type: Easing.OutQuad }
+                                    NumberAnimation { to: 1.0; duration: 800; easing.type: Easing.InQuad }
+                                }
+                            }
+
+                            Icon {
+                                anchors.centerIn: parent
+                                width: units.gu(2); height: width
+                                name: recorder.recording ? "stop"
+                                                         : (whisper.busy ? "view-refresh" : "audio-input-microphone")
+                                color: recorder.recording ? "white"
+                                                          : (whisper.busy ? appTheme.textSecondary : appTheme.text)
+
+                                RotationAnimation on rotation {
+                                    loops: Animation.Infinite
+                                    from: 0; to: 360
+                                    duration: 900
+                                    running: whisper.busy
+                                }
+                            }
+
+                            MouseArea {
+                                id: micMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                enabled: !whisper.busy
+                                onClicked: {
+                                    if (recorder.recording) recorder.stop();
+                                    else recorder.start();
+                                }
+                            }
+                        }
+
+                        // Send button
                         Rectangle {
                             Layout.alignment: Qt.AlignVCenter
                             Layout.preferredWidth: units.gu(4.5)

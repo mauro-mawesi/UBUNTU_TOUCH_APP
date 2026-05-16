@@ -1,6 +1,8 @@
 {
     "policy_groups": [
-        "networking"
+        "networking",
+        "audio",
+        "microphone"
     ],
     "policy_version": "$ENV{APPARMOR_POLICY}"
 }

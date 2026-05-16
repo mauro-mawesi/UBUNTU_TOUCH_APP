@@ -60,7 +60,13 @@ var dictionaries = {
         "Testing…": "Testing…",
         "OK": "OK",
         "Failed": "Failed",
-        "No API key": "No API key"
+        "No API key": "No API key",
+        "Listening…": "Listening…",
+        "Transcribing…": "Transcribing…",
+        "Smart answers from your documents": "Smart answers from your documents",
+        "Voice (TTS)": "Voice (TTS)",
+        "Voice (empty = auto by language)": "Voice (empty = auto by language)",
+        "Auto-speak assistant replies": "Auto-speak assistant replies"
     },
     "es": {
         "RAG Assistant": "Asistente RAG",
@@ -121,7 +127,13 @@ var dictionaries = {
         "Testing…": "Probando…",
         "OK": "OK",
         "Failed": "Falló",
-        "No API key": "Sin API key"
+        "No API key": "Sin API key",
+        "Listening…": "Escuchando…",
+        "Transcribing…": "Transcribiendo…",
+        "Smart answers from your documents": "Respuestas inteligentes desde tus documentos",
+        "Voice (TTS)": "Voz (TTS)",
+        "Voice (empty = auto by language)": "Voz (vacío = auto por idioma)",
+        "Auto-speak assistant replies": "Hablar respuestas automáticamente"
     },
     "nl": {
         "RAG Assistant": "RAG-assistent",
@@ -182,7 +194,13 @@ var dictionaries = {
         "Testing…": "Testen…",
         "OK": "OK",
         "Failed": "Mislukt",
-        "No API key": "Geen API-sleutel"
+        "No API key": "Geen API-sleutel",
+        "Listening…": "Luisteren…",
+        "Transcribing…": "Transcriberen…",
+        "Smart answers from your documents": "Slimme antwoorden uit je documenten",
+        "Voice (TTS)": "Stem (TTS)",
+        "Voice (empty = auto by language)": "Stem (leeg = auto per taal)",
+        "Auto-speak assistant replies": "Antwoorden automatisch voorlezen"
     }
 };
 
