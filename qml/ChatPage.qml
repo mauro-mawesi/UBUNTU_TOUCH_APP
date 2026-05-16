@@ -381,15 +381,38 @@ Page {
         messagesModel.setProperty(idx, "phase", p || "");
     }
 
-    // Surface persistence failures as a visible system bubble instead of a
-    // silent console.log. Caught one bug in the wild already (clickable's
-    // docker writing the SQLite as root, then a native run hitting a readonly
-    // file). Cheap safety net for future recurrences.
+    // Surface persistence failures via the top-of-chat ErrorBanner instead
+    // of yellow system bubbles. The previous approach (one bubble per failed
+    // call) produced 3 stacked bubbles for a single user message and leaked
+    // the raw SQLite path / SQL text into the conversation. The banner
+    // dedupes by `label`, humanizes the headline, and tucks the raw error
+    // behind a "Details" toggle. Still console.log for debugging.
+    function _humanizePersistError(detail) {
+        var d = (detail || "").toLowerCase();
+        if (d.indexOf("readonly database") >= 0
+            || d.indexOf("read-only database") >= 0) {
+            return i18nApp.tr("Couldn't save the conversation locally (storage is read-only).");
+        }
+        if (d.indexOf("can't create path") >= 0
+            || d.indexOf("cannot create") >= 0) {
+            return i18nApp.tr("Local storage isn't available right now.");
+        }
+        if (d.indexOf("not null constraint") >= 0) {
+            return i18nApp.tr("A field expected by the database was empty.");
+        }
+        if (d.indexOf("disk i/o error") >= 0
+            || d.indexOf("database is locked") >= 0) {
+            return i18nApp.tr("Local storage is busy. Retry in a moment.");
+        }
+        return i18nApp.tr("Couldn't save part of the conversation.");
+    }
+
     function _persistError(label, e) {
         var detail = (e && e.message) ? e.message : String(e);
         console.log("[chat] persist failed at " + label + ": " + detail);
-        appendMessage("system", "Persistence error at " + label + ": " + detail,
-                      [], false);
+        if (errorBanner) {
+            errorBanner.pushError(label, _humanizePersistError(detail), detail);
+        }
     }
 
     function _runAsk(q, topic) {
@@ -731,6 +754,14 @@ Page {
             ColumnLayout {
                 anchors.fill: parent
                 spacing: 0
+
+                ErrorBanner {
+                    id: errorBanner
+                    Layout.fillWidth: true
+                    appTheme: page.appTheme
+                    i18nApp: page.i18nApp
+                    severity: "danger"
+                }
 
                 Item {
                     Layout.fillWidth: true

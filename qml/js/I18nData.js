@@ -123,7 +123,21 @@ var dictionaries = {
         "%1 collections": "%1 collections",
         "%1 docs": "%1 docs",
         "%1 models": "%1 models",
-        "dim %1": "dim %1"
+        "dim %1": "dim %1",
+        "Details": "Details",
+        "Hide details": "Hide details",
+        "Dismiss": "Dismiss",
+        "%1 occurrences": "%1 occurrences",
+        "Couldn't save the conversation locally (storage is read-only).":
+            "Couldn't save the conversation locally (storage is read-only).",
+        "Local storage isn't available right now.":
+            "Local storage isn't available right now.",
+        "A field expected by the database was empty.":
+            "A field expected by the database was empty.",
+        "Local storage is busy. Retry in a moment.":
+            "Local storage is busy. Retry in a moment.",
+        "Couldn't save part of the conversation.":
+            "Couldn't save part of the conversation."
     },
     "es": {
         "RAG Assistant": "Asistente RAG",
@@ -247,7 +261,21 @@ var dictionaries = {
         "%1 collections": "%1 colecciones",
         "%1 docs": "%1 documentos",
         "%1 models": "%1 modelos",
-        "dim %1": "dim %1"
+        "dim %1": "dim %1",
+        "Details": "Detalles",
+        "Hide details": "Ocultar detalles",
+        "Dismiss": "Cerrar",
+        "%1 occurrences": "%1 ocurrencias",
+        "Couldn't save the conversation locally (storage is read-only).":
+            "No pude guardar la conversación localmente (almacenamiento de solo lectura).",
+        "Local storage isn't available right now.":
+            "El almacenamiento local no está disponible ahora.",
+        "A field expected by the database was empty.":
+            "Un campo esperado por la base de datos estaba vacío.",
+        "Local storage is busy. Retry in a moment.":
+            "El almacenamiento local está ocupado. Inténtalo en un momento.",
+        "Couldn't save part of the conversation.":
+            "No pude guardar parte de la conversación."
     },
     "nl": {
         "RAG Assistant": "RAG-assistent",
@@ -371,7 +399,21 @@ var dictionaries = {
         "%1 collections": "%1 collecties",
         "%1 docs": "%1 documenten",
         "%1 models": "%1 modellen",
-        "dim %1": "dim %1"
+        "dim %1": "dim %1",
+        "Details": "Details",
+        "Hide details": "Details verbergen",
+        "Dismiss": "Sluiten",
+        "%1 occurrences": "%1 gebeurtenissen",
+        "Couldn't save the conversation locally (storage is read-only).":
+            "Kon het gesprek niet lokaal opslaan (opslag is alleen-lezen).",
+        "Local storage isn't available right now.":
+            "Lokale opslag is op dit moment niet beschikbaar.",
+        "A field expected by the database was empty.":
+            "Een door de database verwacht veld was leeg.",
+        "Local storage is busy. Retry in a moment.":
+            "Lokale opslag is bezig. Probeer het zo opnieuw.",
+        "Couldn't save part of the conversation.":
+            "Een deel van het gesprek kon niet worden opgeslagen."
     }
 };
 
