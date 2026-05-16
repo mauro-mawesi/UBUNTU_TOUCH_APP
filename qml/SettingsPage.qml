@@ -16,6 +16,7 @@ Page {
     signal topicsModified()
 
     property var topics: []
+    property bool revealApiKey: false
 
     function refreshTopics() {
         topics = Store.listTopics();
@@ -87,6 +88,8 @@ Page {
                 Layout.fillWidth: true
                 appTheme: page.appTheme
                 sectionTitle: i18nApp.tr("Appearance")
+                icon: "preferences-desktop-theme-symbolic"
+                collapsible: true
 
                 FieldLabel {
                     Layout.fillWidth: true
@@ -188,6 +191,8 @@ Page {
                 Layout.fillWidth: true
                 appTheme: page.appTheme
                 sectionTitle: i18nApp.tr("Interface")
+                icon: "preferences-desktop-locale-symbolic"
+                collapsible: true
 
                 FieldLabel {
                     Layout.fillWidth: true
@@ -243,15 +248,46 @@ Page {
                 Layout.fillWidth: true
                 appTheme: page.appTheme
                 sectionTitle: i18nApp.tr("Language model")
+                icon: "system-run"
+                collapsible: true
 
                 FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; text: i18nApp.tr("OpenRouter API Key") }
-                StyledField {
+                RowLayout {
                     Layout.fillWidth: true
-                    appTheme: page.appTheme
-                    echoMode: TextInput.Password
-                    placeholderText: "sk-or-..."
-                    text: appSettings.apiKey
-                    onTextChanged: appSettings.apiKey = text
+                    spacing: units.gu(0.4)
+
+                    StyledField {
+                        Layout.fillWidth: true
+                        appTheme: page.appTheme
+                        echoMode: page.revealApiKey ? TextInput.Normal : TextInput.Password
+                        placeholderText: "sk-or-..."
+                        text: appSettings.apiKey
+                        onTextChanged: appSettings.apiKey = text
+                    }
+                    Rectangle {
+                        Layout.preferredWidth: units.gu(4.5)
+                        Layout.preferredHeight: units.gu(4.5)
+                        Layout.alignment: Qt.AlignVCenter
+                        radius: appTheme.radiusMd
+                        color: revealMouse.containsMouse ? appTheme.surfaceHover : appTheme.surfaceAlt
+                        border.color: appTheme.border
+                        border.width: 1
+                        Behavior on color { ColorAnimation { duration: 120 } }
+
+                        Icon {
+                            anchors.centerIn: parent
+                            width: units.gu(1.8); height: width
+                            name: page.revealApiKey ? "view-off" : "view-on"
+                            color: appTheme.textSecondary
+                        }
+                        MouseArea {
+                            id: revealMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: page.revealApiKey = !page.revealApiKey
+                        }
+                    }
                 }
 
                 FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; text: i18nApp.tr("Model") }
@@ -306,6 +342,9 @@ Page {
                 Layout.fillWidth: true
                 appTheme: page.appTheme
                 sectionTitle: i18nApp.tr("Vector store (Chroma)")
+                icon: "drive-harddisk-symbolic"
+                collapsible: true
+                collapsed: true
 
                 FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; text: i18nApp.tr("Base URL") }
                 StyledField {
@@ -357,6 +396,9 @@ Page {
                 Layout.fillWidth: true
                 appTheme: page.appTheme
                 sectionTitle: i18nApp.tr("Embeddings (Ollama)")
+                icon: "view-list-symbolic"
+                collapsible: true
+                collapsed: true
 
                 FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; text: i18nApp.tr("Base URL") }
                 StyledField {
@@ -380,6 +422,8 @@ Page {
                 Layout.fillWidth: true
                 appTheme: page.appTheme
                 sectionTitle: i18nApp.tr("Topics")
+                icon: "tag"
+                collapsible: true
 
                 ColumnLayout {
                     Layout.fillWidth: true
@@ -536,6 +580,9 @@ Page {
                 Layout.fillWidth: true
                 appTheme: page.appTheme
                 sectionTitle: i18nApp.tr("Voice (TTS)")
+                icon: "audio-input-microphone-symbolic"
+                collapsible: true
+                collapsed: true
 
                 FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; text: i18nApp.tr("Base URL") }
                 StyledField {
@@ -578,6 +625,8 @@ Page {
                 Layout.fillWidth: true
                 appTheme: page.appTheme
                 sectionTitle: i18nApp.tr("Connectivity")
+                icon: "network-wireless"
+                collapsible: true
 
                 // Per-service state: "" | "checking" | "ok" | "fail"
                 property string chromaState: ""
@@ -862,7 +911,7 @@ Page {
                     onClicked: {
                         if (dlg.topicRef) Store.deleteTopic(dlg.topicRef.id);
                         page.refreshTopics();
-                        page.topicsChanged();
+                        page.topicsModified();
                         PopupUtils.close(dlg);
                     }
                 }
