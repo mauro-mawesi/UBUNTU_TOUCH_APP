@@ -111,7 +111,14 @@ MainView {
         id: themeTransition
         anchors.fill: parent
         captureSource: root
-        onApply: appSettings.themeMode = mode
+        // Payload is a string (mode toggle) or a number (preset index).
+        onApply: {
+            if (typeof payload === "string") {
+                appSettings.themeMode = payload;
+            } else if (typeof payload === "number") {
+                appSettings.themePresetIndex = payload;
+            }
+        }
     }
 
     SplashScreen {
