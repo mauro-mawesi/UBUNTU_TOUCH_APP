@@ -81,7 +81,9 @@ Page {
                 content: m.content,
                 sources: m.sources,
                 streaming: false,
-                phase: ""
+                phase: "",
+                timestamp: m.createdAt || 0,
+                model: ""
             });
             if (m.role === "user" || m.role === "assistant") {
                 history.push({ role: m.role, content: m.content });
@@ -270,7 +272,9 @@ Page {
             toolName: "",
             toolArgs: "",
             toolResult: "",
-            toolError: ""
+            toolError: "",
+            timestamp: Date.now(),
+            model: role === "assistant" ? (appSettings.model || "") : ""
         });
         // F9: user-sent messages re-anchor at the tail; otherwise respect
         // wherever the user is reading.
@@ -301,7 +305,9 @@ Page {
             toolName: call.name || "",
             toolArgs: argsStr,
             toolResult: resStr,
-            toolError: errStr
+            toolError: errStr,
+            timestamp: Date.now(),
+            model: ""
         });
         Qt.callLater(function() {
             if (listView.stickToBottom) listView.positionViewAtEnd();
@@ -460,6 +466,29 @@ Page {
                 activeXhr = null;
             }
         });
+    }
+
+    function regenerateLast() {
+        if (busy) return;
+        var lastUserIdx = -1;
+        for (var i = messagesModel.count - 1; i >= 0; i--) {
+            if (messagesModel.get(i).role === "user") { lastUserIdx = i; break; }
+        }
+        if (lastUserIdx < 0) return;
+        var q = messagesModel.get(lastUserIdx).content;
+        // Drop the last user msg + everything after — sendQuery will re-add.
+        while (messagesModel.count > lastUserIdx) {
+            messagesModel.remove(messagesModel.count - 1);
+        }
+        // Trim matching tail of `history` so we don't double up the prompt.
+        while (history.length > 0
+               && history[history.length - 1].role === "assistant") history.pop();
+        if (history.length > 0
+            && history[history.length - 1].role === "user"
+            && history[history.length - 1].content === q) {
+            history.pop();
+        }
+        sendQuery(q);
     }
 
     function sendQuery(text) {
@@ -744,6 +773,22 @@ Page {
                         onMovementEnded: stickToBottom = _atBottom()
                         onCountChanged: if (stickToBottom) positionViewAtEnd()
 
+                        // Only animates items newly appended to the model, not pre-existing
+                        // ones reloaded from history or recycled by the ListView pool.
+                        add: Transition {
+                            ParallelAnimation {
+                                NumberAnimation {
+                                    property: "opacity"; from: 0; to: 1
+                                    duration: 200; easing.type: Easing.OutCubic
+                                }
+                                NumberAnimation {
+                                    property: "y"
+                                    from: 0   // ListView fills in the actual values
+                                    duration: 220; easing.type: Easing.OutCubic
+                                }
+                            }
+                        }
+
                         delegate: MessageBubble {
                             width: listView.width
                             role: model.role
@@ -755,10 +800,13 @@ Page {
                             toolArgs: model.toolArgs || ""
                             toolResult: model.toolResult || ""
                             toolError: model.toolError || ""
+                            timestamp: model.timestamp || 0
+                            model: model.model || ""
                             i18nApp: page.i18nApp
                             appTheme: page.appTheme
                             speaking: page.speakingIndex === index
                             onSpeakRequested: page.speakMessage(index)
+                            onRegenerateRequested: page.regenerateLast()
                         }
                     }
 

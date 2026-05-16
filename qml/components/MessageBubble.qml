@@ -2,6 +2,7 @@ import QtQuick 2.7
 import QtQuick.Layouts 1.3
 import Lomiri.Components 1.3
 import "../js/Markdown.js" as Markdown
+import "../js/Time.js" as Time
 
 Item {
     id: bubble
@@ -14,7 +15,10 @@ Item {
     property var i18nApp
     property var appTheme
     property bool speaking: false
+    property real timestamp: 0           // epoch ms (0 = unknown / hide)
+    property string model: ""            // model name shown under assistant role
     signal speakRequested()
+    signal regenerateRequested()
 
     // Tool-call rendering (role === "tool")
     property string toolName: ""
@@ -26,6 +30,7 @@ Item {
     readonly property bool isUser: role === "user"
     readonly property bool isSystem: role === "system"
     readonly property bool isTool: role === "tool"
+    readonly property bool isAssistant: role === "assistant"
 
     // F7: which chip is currently expanded (-1 = none)
     property int expandedSourceIdx: -1
@@ -45,6 +50,17 @@ Item {
         }
     }
 
+    // Measures unwrapped text width so the bubble can shrink to short replies.
+    TextMetrics {
+        id: textMetrics
+        font.pixelSize: FontUtils.sizeToPixels("medium")
+        text: bubble.text
+    }
+    readonly property real _bubbleW: Math.min(
+        parent ? (parent.width - units.gu(3)) : units.gu(40),
+        units.gu(55),
+        Math.max(units.gu(14), textMetrics.width + units.gu(5)))
+
     Rectangle {
         id: bg
         visible: !bubble.isTool
@@ -56,7 +72,7 @@ Item {
             leftMargin: bubble.isUser ? 0 : units.gu(1.5)
             rightMargin: bubble.isUser ? units.gu(1.5) : 0
         }
-        width: Math.min(parent.width - units.gu(3), units.gu(55))
+        width: bubble._bubbleW
         height: contentCol.implicitHeight + units.gu(2.2)
         radius: units.gu(1.8)
         color: bubble.isSystem ? appTheme.bubbleSystemBg
@@ -119,6 +135,34 @@ Item {
                 }
             }
 
+            // Regenerate button (assistant only).
+            Rectangle {
+                id: regenBtn
+                visible: bubble.isAssistant && bubble.text.length > 0 && !bubble.streaming
+                width: units.gu(2.6); height: units.gu(2.6)
+                radius: width / 2
+                color: regenMouse.pressed
+                       ? appTheme.surfaceHover
+                       : (regenMouse.containsMouse ? appTheme.surfaceAlt : "transparent")
+                opacity: regenMouse.containsMouse ? 1.0 : 0.55
+                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on opacity { NumberAnimation { duration: 120 } }
+
+                Icon {
+                    anchors.centerIn: parent
+                    width: units.gu(1.6); height: width
+                    name: "view-refresh"
+                    color: appTheme.textSecondary
+                }
+                MouseArea {
+                    id: regenMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: bubble.regenerateRequested()
+                }
+            }
+
             // Copy button
             Rectangle {
                 id: copyBtn
@@ -178,44 +222,80 @@ Item {
                 width: parent.width
                 spacing: units.gu(0.6)
 
-                Rectangle {
+                Item {
                     Layout.preferredWidth: units.gu(2)
                     Layout.preferredHeight: units.gu(2)
                     Layout.alignment: Qt.AlignVCenter
-                    radius: width / 2
-                    color: bubble.isUser ? Qt.rgba(1, 1, 1, 0.25)
-                                         : (bubble.isSystem ? appTheme.warning : appTheme.primary)
-                    Label {
-                        anchors.centerIn: parent
-                        text: bubble.isUser ? "U" : (bubble.isSystem ? "!" : "A")
-                        color: appTheme.textOnPrimary
-                        textSize: Label.XSmall
-                        font.bold: true
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: width / 2
+                        visible: !bubble.isAssistant
+                        color: bubble.isUser ? Qt.rgba(1, 1, 1, 0.25)
+                                             : (bubble.isSystem ? appTheme.warning : appTheme.primary)
+                        Icon {
+                            anchors.centerIn: parent
+                            width: parent.width * 0.7; height: width
+                            name: bubble.isUser ? "account"
+                                                : (bubble.isSystem ? "dialog-warning-symbolic"
+                                                                   : "")
+                            color: "white"
+                        }
+                    }
+                    BrandMark {
+                        anchors.fill: parent
+                        visible: bubble.isAssistant
+                        appTheme: bubble.appTheme
                     }
                 }
+
                 Label {
-                    Layout.fillWidth: true
                     Layout.alignment: Qt.AlignVCenter
-                    Layout.rightMargin: bubbleActions.width + units.gu(0.8)
                     text: bubble.isUser ? i18nApp.tr("You")
                                         : (bubble.isSystem ? i18nApp.tr("System") : i18nApp.tr("Assistant"))
                     textSize: Label.XSmall
                     color: bubble.isUser ? Qt.rgba(1, 1, 1, 0.85) : appTheme.textSecondary
                     font.bold: true
+                }
+
+                // Model + relative time meta line.
+                Label {
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.rightMargin: bubbleActions.width + units.gu(0.8)
+                    text: {
+                        var parts = [];
+                        if (bubble.isAssistant && bubble.model.length > 0) parts.push(bubble.model);
+                        if (bubble.timestamp > 0) {
+                            parts.push(Time.relativeShort(bubble.timestamp,
+                                                          i18nApp ? i18nApp.language : "en"));
+                        }
+                        return parts.length > 0 ? "· " + parts.join(" · ") : "";
+                    }
+                    textSize: Label.XSmall
+                    color: bubble.isUser ? Qt.rgba(1, 1, 1, 0.65) : appTheme.textMuted
                     elide: Text.ElideRight
+                    visible: text.length > 0
                 }
             }
 
             Label {
                 id: textLabel
                 width: parent.width
-                text: bubble.isUser || bubble.isSystem
-                      ? bubble.text
-                      : Markdown.render(bubble.text, {
-                            codeBg: appTheme.codeBg,
-                            linkColor: appTheme.linkColor,
-                            border: appTheme.border
-                        })
+                // Appends a "▎" caret while streaming so the user sees the
+                // bubble is still being generated. Goes through markdown for
+                // assistant so it lands at the end of the rendered text.
+                text: {
+                    var t = bubble.text;
+                    if (bubble.streaming && t.length > 0) t = t + " ▎";
+                    return bubble.isUser || bubble.isSystem
+                           ? t
+                           : Markdown.render(t, {
+                                codeBg: appTheme.codeBg,
+                                linkColor: appTheme.linkColor,
+                                border: appTheme.border
+                            });
+                }
                 color: bubble.isUser ? appTheme.bubbleUserText
                                      : (bubble.isSystem ? appTheme.bubbleSystemText : appTheme.bubbleAssistantText)
                 wrapMode: Text.Wrap
@@ -235,7 +315,7 @@ Item {
                 spacing: units.gu(0.8)
 
                 TypingIndicator {
-                    dotColor: appTheme.textSecondary
+                    dotColor: appTheme.primary
                     anchors.verticalCenter: parent.verticalCenter
                 }
                 Label {
@@ -274,14 +354,37 @@ Item {
                         width: tagLabel.width + units.gu(1.4)
                         Behavior on color { ColorAnimation { duration: 100 } }
 
+                        // Staggered entry animation — each chip fades + slides
+                        // in with a small index-based delay so retrieval feels alive.
+                        opacity: 0
+                        transform: Translate { id: chipTr; y: units.gu(0.6) }
+                        Component.onCompleted: chipEntry.start()
+                        ParallelAnimation {
+                            id: chipEntry
+                            PauseAnimation { duration: Math.min(index, 8) * 60 }
+                            NumberAnimation {
+                                target: chip; property: "opacity"
+                                to: 1; duration: 200; easing.type: Easing.OutCubic
+                            }
+                            NumberAnimation {
+                                target: chipTr; property: "y"
+                                to: 0; duration: 220; easing.type: Easing.OutCubic
+                            }
+                        }
+
                         Label {
                             id: tagLabel
                             anchors.centerIn: parent
                             text: {
                                 var m = modelData.metadata || {};
                                 var name = m.file_name || m.storage_ref || m.source_id || "doc";
-                                if (name.length > 36) name = "…" + name.substring(name.length - 35);
-                                return (index + 1) + ". " + name;
+                                if (name.length > 32) name = "…" + name.substring(name.length - 31);
+                                var rel = "";
+                                if (modelData.distance !== undefined && modelData.distance !== null) {
+                                    var r = Math.max(0, Math.min(1, 1 - Number(modelData.distance)));
+                                    rel = " · " + Math.round(r * 100) + "%";
+                                }
+                                return (index + 1) + ". " + name + rel;
                             }
                             textSize: Label.XSmall
                             color: appTheme.chipText
@@ -303,15 +406,21 @@ Item {
 
             // F7: expanded snippet panel for the currently selected chip.
             Rectangle {
+                id: snippetPanel
                 width: parent.width
-                visible: bubble.expandedSourceIdx >= 0
-                         && bubble.sources
-                         && bubble.expandedSourceIdx < bubble.sources.length
+                readonly property bool _open: bubble.expandedSourceIdx >= 0
+                                              && bubble.sources
+                                              && bubble.expandedSourceIdx < bubble.sources.length
                 color: appTheme.surfaceAlt
                 border.color: appTheme.border
                 border.width: 1
                 radius: units.gu(0.8)
-                height: visible ? (snippetCol.implicitHeight + units.gu(1.2)) : 0
+                clip: true
+                height: _open ? (snippetCol.implicitHeight + units.gu(1.2)) : 0
+                opacity: _open ? 1 : 0
+                visible: height > 0
+                Behavior on height { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                Behavior on opacity { NumberAnimation { duration: 150 } }
 
                 Column {
                     id: snippetCol
@@ -344,7 +453,8 @@ Item {
                                 if (!bubble.sources || bubble.expandedSourceIdx < 0) return "";
                                 var s = bubble.sources[bubble.expandedSourceIdx] || {};
                                 if (s.distance === undefined || s.distance === null) return "";
-                                return "d=" + Number(s.distance).toFixed(3);
+                                var r = Math.max(0, Math.min(1, 1 - Number(s.distance)));
+                                return Math.round(r * 100) + "%";
                             }
                             color: appTheme.textMuted
                             textSize: Label.XSmall
@@ -381,7 +491,7 @@ Item {
             leftMargin: units.gu(1.5)
             rightMargin: units.gu(1.5)
         }
-        width: Math.min(parent.width - units.gu(3), units.gu(55))
+        width: bubble._bubbleW
         height: toolCol.implicitHeight + units.gu(1.2)
         radius: units.gu(1.2)
         color: appTheme.surfaceAlt
@@ -437,11 +547,21 @@ Item {
                 }
             }
 
-            // Expanded body: args + result/error
-            Column {
+            // Expanded body: args + result/error. Animated height for smooth toggle.
+            Item {
+                id: toolBodyWrap
                 width: parent.width
-                spacing: units.gu(0.4)
-                visible: bubble.toolExpanded
+                height: bubble.toolExpanded ? bodyCol.implicitHeight : 0
+                clip: true
+                opacity: bubble.toolExpanded ? 1 : 0
+                visible: height > 0
+                Behavior on height { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                Behavior on opacity { NumberAnimation { duration: 150 } }
+
+                Column {
+                    id: bodyCol
+                    width: parent.width
+                    spacing: units.gu(0.4)
 
                 Label {
                     width: parent.width
@@ -498,7 +618,8 @@ Item {
                         font.family: "Monospace"
                     }
                 }
-            }
+                }   // bodyCol
+            }       // toolBodyWrap
         }
 
         MouseArea {
