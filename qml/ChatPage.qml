@@ -1016,7 +1016,10 @@ Page {
                             }
                         }
 
-                        // Attach button (placeholder — disabled until backend supports uploads)
+                        // Attach button — hidden until backend supports uploads.
+                        // A permanently-disabled icon was just visual noise in
+                        // the input row (audit feedback). Keep the layout in
+                        // place so flipping `visible` reactivates it.
                         Rectangle {
                             id: attachBtn
                             Layout.alignment: Qt.AlignVCenter
@@ -1027,7 +1030,7 @@ Page {
                             border.color: appTheme.border
                             border.width: 1
                             opacity: 0.45
-                            visible: !page.busy
+                            visible: false
 
                             Icon {
                                 anchors.centerIn: parent
@@ -1035,14 +1038,13 @@ Page {
                                 name: "attachment"
                                 color: appTheme.textSecondary
                             }
-                            // Disabled — no PressEffect attached. Tooltip-equivalent
-                            // is shown via the icon name + placeholder until uploads ship.
                             Accessible.role: Accessible.Button
                             Accessible.name: i18nApp ? i18nApp.tr("Attach a file") : "Attach a file"
                             Accessible.description: i18nApp ? i18nApp.tr("Coming soon") : "Coming soon"
                         }
 
-                        // Mic button
+                        // Mic button — ghost/outline so Send remains the only
+                        // filled action in the row.
                         Rectangle {
                             id: micBtn
                             Layout.alignment: Qt.AlignVCenter
@@ -1051,12 +1053,11 @@ Page {
                             radius: width / 2
                             color: recorder.recording
                                    ? appTheme.danger
-                                   : (whisper.busy ? appTheme.surfaceHover
-                                     : (micMouse.containsMouse ? appTheme.surfaceHover : "transparent"))
+                                   : (micMouse.containsMouse ? appTheme.surfaceHover : "transparent")
                             border.color: recorder.recording ? appTheme.danger : appTheme.border
                             border.width: 1
                             visible: !page.busy
-                            Behavior on color { ColorAnimation { duration: 120 } }
+                            Behavior on color { ColorAnimation { duration: appTheme.motionFast } }
 
                             // Pulsing ring while recording
                             Rectangle {
@@ -1113,7 +1114,11 @@ Page {
                                              : (i18nApp ? i18nApp.tr("Voice input") : "Voice input")
                         }
 
-                        // Send / stop button
+                        // Send / stop button — always filled primary (not
+                        // surfaceHover when idle) so it's clearly the row's
+                        // primary action. Idle state is communicated via
+                        // opacity, not a different fill color that read as
+                        // "disabled" against the input.
                         Rectangle {
                             id: sendBtn
                             Accessible.role: Accessible.Button
@@ -1126,11 +1131,12 @@ Page {
                             radius: width / 2
                             readonly property bool idle: input.text.trim().length === 0 && !page.busy
                             color: page.busy ? appTheme.danger
-                                             : (idle ? appTheme.surfaceHover
-                                               : (sendMouse.containsMouse ? appTheme.secondary : appTheme.primary))
-                            border.color: appTheme.border
-                            border.width: sendBtn.idle ? 1 : 0
-                            Behavior on color { ColorAnimation { duration: 120 } }
+                                             : (sendMouse.containsMouse && !idle ? appTheme.secondary
+                                                                                 : appTheme.primary)
+                            opacity: sendBtn.idle ? 0.45 : 1.0
+                            border.width: 0
+                            Behavior on color   { ColorAnimation  { duration: appTheme.motionFast } }
+                            Behavior on opacity { NumberAnimation { duration: appTheme.motionFast } }
 
                             // Pulsing stop ring while a request is in flight.
                             Rectangle {
@@ -1160,7 +1166,7 @@ Page {
                                 anchors.centerIn: parent
                                 width: units.gu(2.2); height: width
                                 name: page.busy ? "media-playback-stop" : "send"
-                                color: sendBtn.idle ? appTheme.textSecondary : "white"
+                                color: "white"
                             }
 
                             PressEffect {

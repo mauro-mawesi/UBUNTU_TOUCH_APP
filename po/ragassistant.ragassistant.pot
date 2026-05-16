@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ragassistant.ragassistant\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-16 19:27+0000\n"
+"POT-Creation-Date: 2026-05-16 19:33+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -204,73 +204,73 @@ msgstr ""
 msgid "Ask about your documents…"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1041
+#: ../qml/ChatPage.qml:1042
 msgid "Attach a file"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1042
+#: ../qml/ChatPage.qml:1043
 msgid "Coming soon"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1112
+#: ../qml/ChatPage.qml:1113
 msgid "Stop recording"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1113
+#: ../qml/ChatPage.qml:1114
 msgid "Voice input"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1121
+#: ../qml/ChatPage.qml:1126
 msgid "Stop"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1122
+#: ../qml/ChatPage.qml:1127
 msgid "Send"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1194
+#: ../qml/ChatPage.qml:1200
 msgid "Enter to send · Shift+Enter for newline"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1268
+#: ../qml/ChatPage.qml:1274
 msgid "Rename conversation"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1269
+#: ../qml/ChatPage.qml:1275
 msgid "Title"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1278 ../qml/ChatPage.qml:1309
+#: ../qml/ChatPage.qml:1284 ../qml/ChatPage.qml:1315
 #: ../qml/SettingsPage.qml:941 ../qml/SettingsPage.qml:981
 msgid "Cancel"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1282 ../qml/SettingsPage.qml:945
+#: ../qml/ChatPage.qml:1288 ../qml/SettingsPage.qml:945
 msgid "Save"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1303
+#: ../qml/ChatPage.qml:1309
 msgid "Delete conversation"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1304
+#: ../qml/ChatPage.qml:1310
 msgid "Delete \"%1\"? This cannot be undone."
 msgstr ""
 
-#: ../qml/ChatPage.qml:1304 ../qml/SettingsPage.qml:520
+#: ../qml/ChatPage.qml:1310 ../qml/SettingsPage.qml:520
 #: ../qml/components/ConversationList.qml:295
 msgid "Untitled"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1313 ../qml/SettingsPage.qml:985
+#: ../qml/ChatPage.qml:1319 ../qml/SettingsPage.qml:985
 msgid "Delete"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1347
+#: ../qml/ChatPage.qml:1353
 msgid "Choose topic"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1381
+#: ../qml/ChatPage.qml:1387
 msgid "Auto (classify per query)"
 msgstr ""
 
