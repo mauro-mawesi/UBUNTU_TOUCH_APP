@@ -1,5 +1,6 @@
 import QtQuick 2.7
 import QtMultimedia 5.6
+import QtGraphicalEffects 1.0
 import Lomiri.Components 1.3
 import Lomiri.Components.Popups 1.3
 import QtQuick.Layouts 1.3
@@ -949,6 +950,17 @@ Page {
                     border.width: 1
 
                     Behavior on border.color { ColorAnimation { duration: 150 } }
+
+                    // Drop-shadow so the input pill lifts off the gradient
+                    // background instead of disappearing into it (light mode).
+                    RectangularGlow {
+                        anchors.fill: parent
+                        glowRadius: appTheme && appTheme.elev1 ? appTheme.elev1.blur   : 0
+                        spread:     appTheme && appTheme.elev1 ? appTheme.elev1.spread : 0
+                        color:      appTheme && appTheme.elev1 ? appTheme.elev1.color  : "transparent"
+                        cornerRadius: parent.radius + glowRadius
+                        z: -1
+                    }
 
                     RowLayout {
                         id: inputRow

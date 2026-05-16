@@ -1,5 +1,6 @@
 import QtQuick 2.7
 import QtQuick.Layouts 1.3
+import QtGraphicalEffects 1.0
 import Lomiri.Components 1.3
 import "../js/Markdown.js" as Markdown
 import "../js/Time.js" as Time
@@ -70,6 +71,21 @@ Item {
         parent ? (parent.width - units.gu(3)) : units.gu(40),
         units.gu(55),
         Math.max(units.gu(14), textMetrics.width + units.gu(5)))
+
+    // Soft elevation shadow under assistant bubbles. Without it the white
+    // bubble sits invisibly on the very-light-grey gradient in light mode.
+    // User bubbles already have a saturated gradient so they don't need it,
+    // and system bubbles use a tinted bg with a strong border.
+    RectangularGlow {
+        id: bgGlow
+        anchors.fill: bg
+        visible: bg.visible && bubble.isAssistant
+        glowRadius: appTheme && appTheme.elev1 ? appTheme.elev1.blur   : 0
+        spread:     appTheme && appTheme.elev1 ? appTheme.elev1.spread : 0
+        color:      appTheme && appTheme.elev1 ? appTheme.elev1.color  : "transparent"
+        cornerRadius: bg.radius + glowRadius
+        z: -1
+    }
 
     Rectangle {
         id: bg

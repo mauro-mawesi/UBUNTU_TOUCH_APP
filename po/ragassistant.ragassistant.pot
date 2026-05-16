@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ragassistant.ragassistant\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-16 19:13+0000\n"
+"POT-Creation-Date: 2026-05-16 19:20+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -55,7 +55,7 @@ msgstr ""
 msgid "Loading…"
 msgstr ""
 
-#: ../qml/BrainPage.qml:186 ../qml/ChatPage.qml:172
+#: ../qml/BrainPage.qml:186 ../qml/ChatPage.qml:173
 msgid "Brain metrics"
 msgstr ""
 
@@ -79,7 +79,7 @@ msgstr ""
 msgid "dim %1"
 msgstr ""
 
-#: ../qml/BrainPage.qml:302 ../qml/ChatPage.qml:159
+#: ../qml/BrainPage.qml:302 ../qml/ChatPage.qml:160
 msgid "Conversations"
 msgstr ""
 
@@ -111,166 +111,166 @@ msgstr ""
 msgid "%1 models"
 msgstr ""
 
-#: ../qml/ChatPage.qml:124 ../qml/SettingsPage.qml:34
+#: ../qml/ChatPage.qml:125 ../qml/SettingsPage.qml:34
 msgid "General"
 msgstr ""
 
-#: ../qml/ChatPage.qml:150 ../qml/SplashScreen.qml:133
+#: ../qml/ChatPage.qml:151 ../qml/SplashScreen.qml:133
 #: ragassistant.desktop.in.h:1
 msgid "RAG Assistant"
 msgstr ""
 
-#: ../qml/ChatPage.qml:166 ../qml/components/ConversationList.qml:127
+#: ../qml/ChatPage.qml:167 ../qml/components/ConversationList.qml:127
 msgid "New chat"
 msgstr ""
 
-#: ../qml/ChatPage.qml:177 ../qml/SettingsPage.qml:65
+#: ../qml/ChatPage.qml:178 ../qml/SettingsPage.qml:65
 msgid "Settings"
 msgstr ""
 
-#: ../qml/ChatPage.qml:394
+#: ../qml/ChatPage.qml:395
 msgid "Couldn't save the conversation locally (storage is read-only)."
 msgstr ""
 
-#: ../qml/ChatPage.qml:398
+#: ../qml/ChatPage.qml:399
 msgid "Local storage isn't available right now."
 msgstr ""
 
-#: ../qml/ChatPage.qml:401
+#: ../qml/ChatPage.qml:402
 msgid "A field expected by the database was empty."
 msgstr ""
 
-#: ../qml/ChatPage.qml:405
+#: ../qml/ChatPage.qml:406
 msgid "Local storage is busy. Retry in a moment."
 msgstr ""
 
-#: ../qml/ChatPage.qml:407
+#: ../qml/ChatPage.qml:408
 msgid "Couldn't save part of the conversation."
 msgstr ""
 
-#: ../qml/ChatPage.qml:580
+#: ../qml/ChatPage.qml:581
 msgid "Set your OpenRouter API Key in Settings."
 msgstr ""
 
-#: ../qml/ChatPage.qml:701
+#: ../qml/ChatPage.qml:702
 msgid "Auto"
 msgstr ""
 
-#: ../qml/ChatPage.qml:790
+#: ../qml/ChatPage.qml:791
 msgid "What would you like to know today?"
 msgstr ""
 
-#: ../qml/ChatPage.qml:801
+#: ../qml/ChatPage.qml:802
 msgid "Ask anything about your documents"
 msgstr ""
 
-#: ../qml/ChatPage.qml:819
+#: ../qml/ChatPage.qml:820
 msgid "Summarize the working hours policy"
 msgstr ""
 
-#: ../qml/ChatPage.qml:820
+#: ../qml/ChatPage.qml:821
 msgid "From the internal regulations"
 msgstr ""
 
-#: ../qml/ChatPage.qml:826
+#: ../qml/ChatPage.qml:827
 msgid "What are the security and JWT requirements?"
 msgstr ""
 
-#: ../qml/ChatPage.qml:827
+#: ../qml/ChatPage.qml:828
 msgid "From operations and security docs"
 msgstr ""
 
-#: ../qml/ChatPage.qml:834
+#: ../qml/ChatPage.qml:835
 msgid "List the vacation rules"
 msgstr ""
 
-#: ../qml/ChatPage.qml:835
+#: ../qml/ChatPage.qml:836
 msgid "From HR documents"
 msgstr ""
 
-#: ../qml/ChatPage.qml:933
+#: ../qml/ChatPage.qml:934
 msgid "Jump to latest"
 msgstr ""
 
-#: ../qml/ChatPage.qml:969
+#: ../qml/ChatPage.qml:981
 msgid "Listening…"
 msgstr ""
 
-#: ../qml/ChatPage.qml:971
+#: ../qml/ChatPage.qml:983
 msgid "Transcribing…"
 msgstr ""
 
-#: ../qml/ChatPage.qml:972
+#: ../qml/ChatPage.qml:984
 msgid "Ask about your documents…"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1006
+#: ../qml/ChatPage.qml:1018
 msgid "Attach a file"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1007
+#: ../qml/ChatPage.qml:1019
 msgid "Coming soon"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1077
+#: ../qml/ChatPage.qml:1089
 msgid "Stop recording"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1078
+#: ../qml/ChatPage.qml:1090
 msgid "Voice input"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1086
+#: ../qml/ChatPage.qml:1098
 msgid "Stop"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1087
+#: ../qml/ChatPage.qml:1099
 msgid "Send"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1159
+#: ../qml/ChatPage.qml:1171
 msgid "Enter to send · Shift+Enter for newline"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1233
+#: ../qml/ChatPage.qml:1245
 msgid "Rename conversation"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1234
+#: ../qml/ChatPage.qml:1246
 msgid "Title"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1243 ../qml/ChatPage.qml:1274
+#: ../qml/ChatPage.qml:1255 ../qml/ChatPage.qml:1286
 #: ../qml/SettingsPage.qml:921 ../qml/SettingsPage.qml:961
 msgid "Cancel"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1247 ../qml/SettingsPage.qml:925
+#: ../qml/ChatPage.qml:1259 ../qml/SettingsPage.qml:925
 msgid "Save"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1268
+#: ../qml/ChatPage.qml:1280
 msgid "Delete conversation"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1269
+#: ../qml/ChatPage.qml:1281
 msgid "Delete \"%1\"? This cannot be undone."
 msgstr ""
 
-#: ../qml/ChatPage.qml:1269 ../qml/SettingsPage.qml:500
+#: ../qml/ChatPage.qml:1281 ../qml/SettingsPage.qml:500
 #: ../qml/components/ConversationList.qml:295
 msgid "Untitled"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1278 ../qml/SettingsPage.qml:965
+#: ../qml/ChatPage.qml:1290 ../qml/SettingsPage.qml:965
 msgid "Delete"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1312
+#: ../qml/ChatPage.qml:1324
 msgid "Choose topic"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1346
+#: ../qml/ChatPage.qml:1358
 msgid "Auto (classify per query)"
 msgstr ""
 
@@ -352,66 +352,66 @@ msgstr ""
 msgid "Dismiss"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:149
+#: ../qml/components/MessageBubble.qml:165
 msgid "Stop speaking"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:150
+#: ../qml/components/MessageBubble.qml:166
 msgid "Speak message"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:180
+#: ../qml/components/MessageBubble.qml:196
 msgid "Regenerate response"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:224
+#: ../qml/components/MessageBubble.qml:240
 msgid "Copy text"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:273
+#: ../qml/components/MessageBubble.qml:289
 msgid "You"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:274
+#: ../qml/components/MessageBubble.qml:290
 msgid "Assistant"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:274
+#: ../qml/components/MessageBubble.qml:290
 msgid "System"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:345
+#: ../qml/components/MessageBubble.qml:361
 msgid "Searching context…"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:347
+#: ../qml/components/MessageBubble.qml:363
 msgid "Classifying topic…"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:348
+#: ../qml/components/MessageBubble.qml:364
 msgid "Thinking…"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:489
+#: ../qml/components/MessageBubble.qml:505
 msgid "(no snippet)"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:555
+#: ../qml/components/MessageBubble.qml:571
 msgid "error"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:556
+#: ../qml/components/MessageBubble.qml:572
 msgid "ok"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:587
+#: ../qml/components/MessageBubble.qml:603
 msgid "Arguments"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:615
+#: ../qml/components/MessageBubble.qml:631
 msgid "Error"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:616
+#: ../qml/components/MessageBubble.qml:632
 msgid "Result"
 msgstr ""
