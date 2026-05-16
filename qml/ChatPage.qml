@@ -319,11 +319,19 @@ Page {
     // and used so tool bubbles slotted in mid-turn don't break content updates.
     property int streamingIdx: -1
 
+    // Throttle scroll-to-end so high-rate streaming (50+ tokens/s) doesn't
+    // overwhelm the layout — at most one scroll request per ~16ms (60fps).
+    property real _lastScrollAt: 0
+
     function updateLast(content, streaming) {
         var idx = streamingIdx >= 0 ? streamingIdx : (messagesModel.count - 1);
         if (idx < 0 || idx >= messagesModel.count) return;
         messagesModel.setProperty(idx, "content", content);
         if (streaming !== undefined) messagesModel.setProperty(idx, "streaming", streaming);
+        if (!listView.stickToBottom) return;
+        var now = Date.now();
+        if (now - _lastScrollAt < 16) return;
+        _lastScrollAt = now;
         Qt.callLater(function() {
             if (listView.stickToBottom) listView.positionViewAtEnd();
         });
@@ -837,16 +845,15 @@ Page {
                             color: "white"
                         }
 
-                        MouseArea {
+                        PressEffect {
                             id: jumpMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 listView.stickToBottom = true;
                                 listView.positionViewAtEnd();
                             }
                         }
+                        Accessible.role: Accessible.Button
+                        Accessible.name: i18nApp ? i18nApp.tr("Jump to latest") : "Jump to latest"
                     }
                 }
 
@@ -918,6 +925,9 @@ Page {
                             }
                             // Disabled — no PressEffect attached. Tooltip-equivalent
                             // is shown via the icon name + placeholder until uploads ship.
+                            Accessible.role: Accessible.Button
+                            Accessible.name: i18nApp ? i18nApp.tr("Attach a file") : "Attach a file"
+                            Accessible.description: i18nApp ? i18nApp.tr("Coming soon") : "Coming soon"
                         }
 
                         // Mic button
@@ -985,11 +995,19 @@ Page {
                                     else recorder.start();
                                 }
                             }
+                            Accessible.role: Accessible.Button
+                            Accessible.name: recorder.recording
+                                             ? (i18nApp ? i18nApp.tr("Stop recording") : "Stop recording")
+                                             : (i18nApp ? i18nApp.tr("Voice input") : "Voice input")
                         }
 
                         // Send / stop button
                         Rectangle {
                             id: sendBtn
+                            Accessible.role: Accessible.Button
+                            Accessible.name: page.busy
+                                             ? (i18nApp ? i18nApp.tr("Stop") : "Stop")
+                                             : (i18nApp ? i18nApp.tr("Send") : "Send")
                             Layout.alignment: Qt.AlignVCenter
                             Layout.preferredWidth: units.gu(4.5)
                             Layout.preferredHeight: units.gu(4.5)
@@ -1080,7 +1098,7 @@ Page {
         color: "black"
         opacity: (sidebarOpen && !wideMode) ? 0.45 : 0
         visible: opacity > 0
-        Behavior on opacity { NumberAnimation { duration: 180 } }
+        Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
         MouseArea {
             anchors.fill: parent
             onClicked: sidebarOpen = false

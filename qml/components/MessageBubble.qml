@@ -133,6 +133,10 @@ Item {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: bubble.speakRequested()
                 }
+                Accessible.role: Accessible.Button
+                Accessible.name: bubble.speaking
+                                 ? (i18nApp ? i18nApp.tr("Stop speaking") : "Stop speaking")
+                                 : (i18nApp ? i18nApp.tr("Speak message") : "Speak message")
             }
 
             // Regenerate button (assistant only).
@@ -161,6 +165,8 @@ Item {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: bubble.regenerateRequested()
                 }
+                Accessible.role: Accessible.Button
+                Accessible.name: i18nApp ? i18nApp.tr("Regenerate response") : "Regenerate response"
             }
 
             // Copy button
@@ -203,6 +209,8 @@ Item {
                         copiedTimer.restart();
                     }
                 }
+                Accessible.role: Accessible.Button
+                Accessible.name: i18nApp ? i18nApp.tr("Copy text") : "Copy text"
             }
         }
 
@@ -350,8 +358,8 @@ Item {
                                : (chipMouse.containsMouse ? appTheme.surfaceAlt : appTheme.chipBg)
                         border.color: isExpanded ? appTheme.borderFocus : appTheme.chipBorder
                         border.width: 1
-                        height: tagLabel.height + units.gu(0.6)
-                        width: tagLabel.width + units.gu(1.4)
+                        height: tagLabel.height + units.gu(1.0)
+                        width: tagLabel.width + units.gu(1.8)
                         Behavior on color { ColorAnimation { duration: 100 } }
 
                         // Staggered entry animation — each chip fades + slides

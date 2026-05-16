@@ -95,7 +95,16 @@ var dictionaries = {
         "Enter to send · Shift+Enter for newline": "Enter to send · Shift+Enter for newline",
         "Attach a file": "Attach a file",
         "Coming soon": "Coming soon",
-        "Auto": "Auto"
+        "Auto": "Auto",
+        "Jump to latest": "Jump to latest",
+        "Stop recording": "Stop recording",
+        "Voice input": "Voice input",
+        "Stop": "Stop",
+        "Send": "Send",
+        "Speak message": "Speak message",
+        "Stop speaking": "Stop speaking",
+        "Regenerate response": "Regenerate response",
+        "Copy text": "Copy text"
     },
     "es": {
         "RAG Assistant": "Asistente RAG",
@@ -191,7 +200,16 @@ var dictionaries = {
         "Enter to send · Shift+Enter for newline": "Enter para enviar · Shift+Enter para nueva línea",
         "Attach a file": "Adjuntar archivo",
         "Coming soon": "Próximamente",
-        "Auto": "Auto"
+        "Auto": "Auto",
+        "Jump to latest": "Ir al final",
+        "Stop recording": "Detener grabación",
+        "Voice input": "Entrada de voz",
+        "Stop": "Detener",
+        "Send": "Enviar",
+        "Speak message": "Leer mensaje",
+        "Stop speaking": "Detener lectura",
+        "Regenerate response": "Regenerar respuesta",
+        "Copy text": "Copiar texto"
     },
     "nl": {
         "RAG Assistant": "RAG-assistent",
@@ -287,7 +305,16 @@ var dictionaries = {
         "Enter to send · Shift+Enter for newline": "Enter om te versturen · Shift+Enter voor nieuwe regel",
         "Attach a file": "Bestand bijvoegen",
         "Coming soon": "Binnenkort beschikbaar",
-        "Auto": "Auto"
+        "Auto": "Auto",
+        "Jump to latest": "Naar laatste",
+        "Stop recording": "Opname stoppen",
+        "Voice input": "Steminvoer",
+        "Stop": "Stoppen",
+        "Send": "Verzenden",
+        "Speak message": "Bericht voorlezen",
+        "Stop speaking": "Voorlezen stoppen",
+        "Regenerate response": "Antwoord opnieuw genereren",
+        "Copy text": "Tekst kopiëren"
     }
 };
 
