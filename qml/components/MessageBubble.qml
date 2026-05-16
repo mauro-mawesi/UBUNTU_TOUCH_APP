@@ -16,7 +16,10 @@ Item {
     property var appTheme
     property bool speaking: false
     property real timestamp: 0           // epoch ms (0 = unknown / hide)
-    property string model: ""            // model name shown under assistant role
+    // Named `modelLabel` (not `model`) because a `model` property here would
+    // shadow ListView's delegate-context `model`, breaking every `model.role`
+    // / `model.content` binding in ChatPage's delegate.
+    property string modelLabel: ""
     signal speakRequested()
     signal regenerateRequested()
 
@@ -273,7 +276,7 @@ Item {
                     Layout.rightMargin: bubbleActions.width + units.gu(0.8)
                     text: {
                         var parts = [];
-                        if (bubble.isAssistant && bubble.model.length > 0) parts.push(bubble.model);
+                        if (bubble.isAssistant && bubble.modelLabel.length > 0) parts.push(bubble.modelLabel);
                         if (bubble.timestamp > 0) {
                             parts.push(Time.relativeShort(bubble.timestamp,
                                                           i18nApp ? i18nApp.language : "en"));

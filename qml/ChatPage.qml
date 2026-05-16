@@ -783,17 +783,12 @@ Page {
 
                         // Only animates items newly appended to the model, not pre-existing
                         // ones reloaded from history or recycled by the ListView pool.
+                        // y is left to ListView (animating it caused inserts to fly from
+                        // the top of the list to their real position, looking like duplicates).
                         add: Transition {
-                            ParallelAnimation {
-                                NumberAnimation {
-                                    property: "opacity"; from: 0; to: 1
-                                    duration: 200; easing.type: Easing.OutCubic
-                                }
-                                NumberAnimation {
-                                    property: "y"
-                                    from: 0   // ListView fills in the actual values
-                                    duration: 220; easing.type: Easing.OutCubic
-                                }
+                            NumberAnimation {
+                                property: "opacity"; from: 0; to: 1
+                                duration: 200; easing.type: Easing.OutCubic
                             }
                         }
 
@@ -809,7 +804,7 @@ Page {
                             toolResult: model.toolResult || ""
                             toolError: model.toolError || ""
                             timestamp: model.timestamp || 0
-                            model: model.model || ""
+                            modelLabel: model.model || ""
                             i18nApp: page.i18nApp
                             appTheme: page.appTheme
                             speaking: page.speakingIndex === index
