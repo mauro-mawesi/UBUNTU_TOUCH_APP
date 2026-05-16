@@ -41,10 +41,11 @@ function defaultSystemPrompt(language, topicAddon) {
 }
 
 // settings: { chromaUrl, tenant, database, collectionId, ollamaUrl, embedModel, topK,
-//             openrouterUrl, apiKey, model, appTitle, topicAddon }
+//             openrouterUrl, apiKey, model, appTitle, topicAddon, tools, toolRegistry }
 // history: [{ role, content }, ...]  (does NOT include the new user message)
 // userMessage: string
-// callbacks: onSources(items), onDelta(text), onDone(fullText), onError(msg)
+// callbacks: onSources(items), onDelta(text), onDone(fullText),
+//            onToolStart(call), onToolDone(call, result), onError(msg)
 function ask(settings, history, userMessage, callbacks) {
     Chroma.retrieve({
         chromaUrl: settings.chromaUrl,
@@ -63,19 +64,103 @@ function ask(settings, history, userMessage, callbacks) {
         for (var i = 0; i < history.length; i++) messages.push(history[i]);
         messages.push({ role: "user", content: userMessage });
 
-        OR.streamChat({
-            baseUrl: settings.openrouterUrl,
-            apiKey: settings.apiKey,
-            model: settings.model,
-            appTitle: settings.appTitle || "ragassistant"
-        }, messages, {
-            onDelta: callbacks.onDelta,
-            onDone: callbacks.onDone,
-            onError: callbacks.onError
-        });
+        runWithTools(settings, messages, callbacks, 0);
     },
     function(err) {
         if (callbacks.onError) callbacks.onError("Chroma/embed: " + err);
+    });
+}
+
+// runWithTools — drives the tool-calling loop. Streams a chat completion; if
+// the model returns tool_calls, executes each, appends the assistant message
+// and the role:"tool" replies, and recurses. Bounded by MAX_TOOL_DEPTH so a
+// looping model can't run away.
+var MAX_TOOL_DEPTH = 5;
+
+function runWithTools(settings, messages, callbacks, depth) {
+    depth = depth || 0;
+    if (depth > MAX_TOOL_DEPTH) {
+        if (callbacks.onError) callbacks.onError("Tool loop exceeded max depth (" + MAX_TOOL_DEPTH + ")");
+        return;
+    }
+
+    // Round > 0 starts a new assistant turn. The very first round reuses the
+    // placeholder ChatPage created before retrieval.
+    if (depth > 0 && callbacks.onRoundStart) callbacks.onRoundStart(depth);
+
+    var roundText = "";
+
+    var streamOpts = {
+        baseUrl: settings.openrouterUrl,
+        apiKey: settings.apiKey,
+        model: settings.model,
+        appTitle: settings.appTitle || "ragassistant"
+    };
+    if (settings.tools && settings.tools.length > 0) {
+        streamOpts.tools = settings.tools;
+    }
+
+    return OR.streamChat(streamOpts, messages, {
+        onDelta: function(t) {
+            roundText += t;
+            if (callbacks.onDelta) callbacks.onDelta(t);
+        },
+        onDone: function(full, usage, toolCalls) {
+            if (!toolCalls || toolCalls.length === 0) {
+                if (callbacks.onDone) callbacks.onDone(full || roundText, usage);
+                return;
+            }
+
+            // The model asked for tools. Echo the assistant message verbatim
+            // (content can be null when only tool_calls were emitted) and then
+            // append one role:"tool" reply per call.
+            var assistantMsg = {
+                role: "assistant",
+                content: (full && full.length > 0) ? full : null,
+                tool_calls: []
+            };
+            for (var i = 0; i < toolCalls.length; i++) {
+                var c = toolCalls[i];
+                assistantMsg.tool_calls.push({
+                    id: c.id,
+                    type: "function",
+                    "function": { name: c.name, arguments: c.argumentsString || "{}" }
+                });
+            }
+            messages.push(assistantMsg);
+
+            // Signal the UI that the current assistant turn ended with tool
+            // calls — gives ChatPage a chance to finalize/clean the placeholder
+            // before tool result bubbles get appended.
+            if (callbacks.onPreTools) callbacks.onPreTools(full || roundText, toolCalls);
+
+            var registry = settings.toolRegistry;
+            if (!registry) {
+                if (callbacks.onError) callbacks.onError("Model requested tools but no registry is configured");
+                return;
+            }
+
+            var pending = toolCalls.length;
+            for (var j = 0; j < toolCalls.length; j++) {
+                (function(call) {
+                    if (callbacks.onToolStart) callbacks.onToolStart(call);
+                    registry.execute(call.name, call.arguments, function(result) {
+                        if (callbacks.onToolDone) callbacks.onToolDone(call, result);
+                        messages.push({
+                            role: "tool",
+                            tool_call_id: call.id,
+                            name: call.name,
+                            content: JSON.stringify(result)
+                        });
+                        pending--;
+                        if (pending === 0) {
+                            runWithTools(settings, messages, callbacks, depth + 1);
+                        }
+                    });
+                })(toolCalls[j]);
+            }
+        },
+        onError: callbacks.onError
     });
 }
 

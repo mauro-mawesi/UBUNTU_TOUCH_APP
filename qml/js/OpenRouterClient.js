@@ -22,13 +22,37 @@ function streamChat(opts, messages, callbacks) {
     var aborted = false;
     var finished = false;
 
+    // tool_calls accumulator keyed by `index`. Each entry collects id, name,
+    // and concatenated arguments-as-JSON-string. We parse arguments only at
+    // the end so streamed JSON fragments don't fail mid-flight.
+    var toolBuf = {};
+
+    function _materializeToolCalls() {
+        var out = [];
+        var keys = Object.keys(toolBuf);
+        keys.sort(function(a, b) { return parseInt(a) - parseInt(b); });
+        for (var i = 0; i < keys.length; i++) {
+            var c = toolBuf[keys[i]];
+            var parsed = {};
+            try { parsed = c.argsStr ? JSON.parse(c.argsStr) : {}; }
+            catch (e) { parsed = { _raw: c.argsStr, _parseError: String(e) }; }
+            out.push({
+                id: c.id || "",
+                name: c.name || "",
+                arguments: parsed,
+                argumentsString: c.argsStr || "{}"
+            });
+        }
+        return out;
+    }
+
     function finish(isError, errMsg) {
         if (finished) return;
         finished = true;
         if (isError) {
             if (callbacks.onError) callbacks.onError(errMsg);
         } else {
-            if (callbacks.onDone) callbacks.onDone(full, usage);
+            if (callbacks.onDone) callbacks.onDone(full, usage, _materializeToolCalls());
         }
     }
 
@@ -64,6 +88,20 @@ function streamChat(opts, messages, callbacks) {
                 if (delta.content) {
                     full += delta.content;
                     if (callbacks.onDelta) callbacks.onDelta(delta.content);
+                }
+                // Streamed tool_calls: each chunk carries one or more partial
+                // entries keyed by `index`. The first chunk for a given index
+                // usually has id+name; subsequent chunks append to arguments.
+                if (delta.tool_calls && delta.tool_calls.length) {
+                    for (var k = 0; k < delta.tool_calls.length; k++) {
+                        var tc = delta.tool_calls[k];
+                        var idx = (tc.index !== undefined) ? tc.index : k;
+                        if (!toolBuf[idx]) toolBuf[idx] = { id: "", name: "", argsStr: "" };
+                        if (tc.id) toolBuf[idx].id = tc.id;
+                        var fn = tc["function"] || {};
+                        if (fn.name) toolBuf[idx].name = fn.name;
+                        if (fn.arguments) toolBuf[idx].argsStr += fn.arguments;
+                    }
                 }
             }
         } catch (e) {
@@ -118,6 +156,10 @@ function streamChat(opts, messages, callbacks) {
     };
     if (opts.temperature !== undefined) body.temperature = opts.temperature;
     if (opts.maxTokens) body.max_tokens = opts.maxTokens;
+    if (opts.tools && opts.tools.length > 0) {
+        body.tools = opts.tools;
+        if (opts.toolChoice) body.tool_choice = opts.toolChoice;
+    }
 
     xhr.send(JSON.stringify(body));
     return xhr;

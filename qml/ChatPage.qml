@@ -7,6 +7,7 @@ import Ragassistant.Audio 1.0
 import "components"
 import "js/RagOrchestrator.js" as Rag
 import "js/Store.js" as Store
+import "js/tools/registry.js" as Tools
 
 Page {
     id: page
@@ -265,7 +266,11 @@ Page {
             content: content || "",
             sources: sources || [],
             streaming: streaming === true,
-            phase: phase || ""
+            phase: phase || "",
+            toolName: "",
+            toolArgs: "",
+            toolResult: "",
+            toolError: ""
         });
         // F9: user-sent messages re-anchor at the tail; otherwise respect
         // wherever the user is reading.
@@ -275,9 +280,42 @@ Page {
         });
     }
 
+    function appendToolMessage(call, result) {
+        var argsStr = "";
+        try { argsStr = JSON.stringify(call.arguments || {}, null, 2); }
+        catch (e) { argsStr = String(call.arguments || ""); }
+        var resStr = "";
+        var errStr = "";
+        if (result && result.error) {
+            errStr = String(result.error);
+        } else {
+            try { resStr = JSON.stringify(result, null, 2); }
+            catch (e) { resStr = String(result); }
+        }
+        messagesModel.append({
+            role: "tool",
+            content: "",
+            sources: [],
+            streaming: false,
+            phase: "",
+            toolName: call.name || "",
+            toolArgs: argsStr,
+            toolResult: resStr,
+            toolError: errStr
+        });
+        Qt.callLater(function() {
+            if (listView.stickToBottom) listView.positionViewAtEnd();
+        });
+    }
+
+    // streamingIdx points to the currently-streaming assistant bubble in
+    // messagesModel. Updated whenever a new round's placeholder is appended,
+    // and used so tool bubbles slotted in mid-turn don't break content updates.
+    property int streamingIdx: -1
+
     function updateLast(content, streaming) {
-        if (messagesModel.count === 0) return;
-        var idx = messagesModel.count - 1;
+        var idx = streamingIdx >= 0 ? streamingIdx : (messagesModel.count - 1);
+        if (idx < 0 || idx >= messagesModel.count) return;
         messagesModel.setProperty(idx, "content", content);
         if (streaming !== undefined) messagesModel.setProperty(idx, "streaming", streaming);
         Qt.callLater(function() {
@@ -286,14 +324,15 @@ Page {
     }
 
     function updateLastSources(items) {
-        if (messagesModel.count === 0) return;
-        var idx = messagesModel.count - 1;
+        var idx = streamingIdx >= 0 ? streamingIdx : (messagesModel.count - 1);
+        if (idx < 0 || idx >= messagesModel.count) return;
         messagesModel.setProperty(idx, "sources", items);
     }
 
     function setLastPhase(p) {
-        if (messagesModel.count === 0) return;
-        messagesModel.setProperty(messagesModel.count - 1, "phase", p || "");
+        var idx = streamingIdx >= 0 ? streamingIdx : (messagesModel.count - 1);
+        if (idx < 0 || idx >= messagesModel.count) return;
+        messagesModel.setProperty(idx, "phase", p || "");
     }
 
     function _runAsk(q, topic) {
@@ -311,10 +350,15 @@ Page {
         catch (e) { console.log("[chat] persist assistant msg failed: " + e); }
 
         appendMessage("assistant", "", [], true, "retrieving");
+        streamingIdx = messagesModel.count - 1;
 
         input.text = "";
 
-        var assistantText = "";
+        // Per-round text (reset on each new assistant round). Carries over via
+        // closure so onDone can fall back to it if `full` is empty.
+        var roundText = "";
+        // The final-answer text for persistence/TTS — accumulated across rounds.
+        var finalText = "";
         var assistantSources = [];
 
         var collectionId = topic ? (topic.collectionId || appSettings.collectionId)
@@ -330,10 +374,15 @@ Page {
             topicAddon: topicAddon,
             appTitle: "ragassistant"
         };
+        if (appSettings.toolsEnabled) {
+            settingsWithLang.tools = Tools.getAll();
+            settingsWithLang.toolRegistry = Tools;
+        }
 
         console.log("[chat] _runAsk convId=" + convId + " q=" + q.substring(0,40)
                     + " topic=" + (topic ? topic.name + "(" + topic.id + ")" : "none")
-                    + " collection=" + collectionId);
+                    + " collection=" + collectionId
+                    + " tools=" + (settingsWithLang.tools ? settingsWithLang.tools.length : 0));
 
         activeXhr = Rag.ask(settingsWithLang, history.slice(), q, {
             onSources: function(items) {
@@ -342,12 +391,36 @@ Page {
                 setLastPhase("thinking");
             },
             onDelta: function(t) {
-                if (assistantText.length === 0) setLastPhase("");
-                assistantText += t;
-                updateLast(assistantText, true);
+                if (roundText.length === 0) setLastPhase("");
+                roundText += t;
+                updateLast(roundText, true);
+            },
+            onPreTools: function(text, calls) {
+                // Finalize the current assistant placeholder before the tool
+                // bubbles appear. If the model emitted no text in this round
+                // (only tool_calls), drop the empty placeholder for cleanliness.
+                if (streamingIdx >= 0 && streamingIdx < messagesModel.count) {
+                    var current = messagesModel.get(streamingIdx);
+                    if (!current.content || current.content.length === 0) {
+                        messagesModel.remove(streamingIdx);
+                    } else {
+                        messagesModel.setProperty(streamingIdx, "streaming", false);
+                    }
+                }
+                streamingIdx = -1;
+            },
+            onToolDone: function(call, result) {
+                appendToolMessage(call, result);
+            },
+            onRoundStart: function(depth) {
+                // New assistant round after tool execution: fresh placeholder.
+                appendMessage("assistant", "", [], true, "thinking");
+                streamingIdx = messagesModel.count - 1;
+                roundText = "";
             },
             onDone: function(full) {
-                var finalText = full.length > 0 ? full : assistantText;
+                var text = (full && full.length > 0) ? full : roundText;
+                finalText = text;
                 updateLast(finalText, false);
                 history.push({ role: "user", content: q });
                 history.push({ role: "assistant", content: finalText });
@@ -355,22 +428,34 @@ Page {
                     Store.updateMessage(streamingMsgId, finalText, assistantSources);
                     streamingMsgId = -1;
                 }
+                streamingIdx = -1;
                 refreshConversations();
                 busy = false;
                 activeXhr = null;
                 if (appSettings.ttsAutoSpeak && finalText.length > 0) {
-                    speakMessage(messagesModel.count - 1);
+                    // Speak the final assistant bubble (last non-tool message).
+                    for (var i = messagesModel.count - 1; i >= 0; i--) {
+                        if (messagesModel.get(i).role === "assistant") {
+                            speakMessage(i);
+                            break;
+                        }
+                    }
                 }
             },
             onError: function(err) {
                 console.log("[chat] onError: " + err);
-                var prefix = assistantText.length > 0 ? assistantText + "\n\n" : "";
-                var finalText = prefix + err;
-                updateLast(finalText, false);
+                var idx = streamingIdx >= 0 ? streamingIdx : (messagesModel.count - 1);
+                var prefix = roundText.length > 0 ? roundText + "\n\n" : "";
+                var errText = prefix + err;
+                if (idx >= 0 && idx < messagesModel.count) {
+                    messagesModel.setProperty(idx, "content", errText);
+                    messagesModel.setProperty(idx, "streaming", false);
+                }
                 if (streamingMsgId > 0) {
-                    Store.updateMessage(streamingMsgId, finalText, assistantSources);
+                    Store.updateMessage(streamingMsgId, errText, assistantSources);
                     streamingMsgId = -1;
                 }
+                streamingIdx = -1;
                 busy = false;
                 activeXhr = null;
             }
@@ -656,6 +741,10 @@ Page {
                             sources: model.sources
                             streaming: model.streaming
                             phase: model.phase || ""
+                            toolName: model.toolName || ""
+                            toolArgs: model.toolArgs || ""
+                            toolResult: model.toolResult || ""
+                            toolError: model.toolError || ""
                             i18nApp: page.i18nApp
                             appTheme: page.appTheme
                             speaking: page.speakingIndex === index

@@ -10,6 +10,7 @@ Page {
     property var appSettings
     property var i18nApp
     property var appTheme
+    property var themeTransition: null
 
     // Emitted whenever topics are created/edited/deleted so ChatPage refreshes.
     signal topicsModified()
@@ -127,7 +128,15 @@ Page {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: appSettings.themeMode = modelData.code
+                                onClicked: {
+                                    if (appSettings.themeMode === modelData.code) return;
+                                    if (page.themeTransition) {
+                                        var p = mapToItem(null, mouse.x, mouse.y);
+                                        page.themeTransition.run(p.x, p.y, modelData.code);
+                                    } else {
+                                        appSettings.themeMode = modelData.code;
+                                    }
+                                }
                             }
                         }
                     }
@@ -260,6 +269,35 @@ Page {
                     appTheme: page.appTheme
                     text: appSettings.openrouterUrl
                     onTextChanged: appSettings.openrouterUrl = text
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.topMargin: units.gu(0.8)
+                    spacing: units.gu(0.8)
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 0
+                        Label {
+                            Layout.fillWidth: true
+                            text: i18nApp.tr("Enable tools (function calling)")
+                            color: appTheme.text
+                            textSize: Label.Small
+                        }
+                        Label {
+                            Layout.fillWidth: true
+                            text: i18nApp.tr("Lets the model call built-in tools like calculator or current time. Requires a tool-capable model.")
+                            color: appTheme.textMuted
+                            textSize: Label.XSmall
+                            wrapMode: Text.Wrap
+                        }
+                    }
+                    Switch {
+                        Layout.alignment: Qt.AlignTop
+                        checked: appSettings.toolsEnabled
+                        onCheckedChanged: appSettings.toolsEnabled = checked
+                    }
                 }
             }
 

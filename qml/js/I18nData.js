@@ -82,7 +82,15 @@ var dictionaries = {
         "System prompt addon (optional)": "System prompt addon (optional)",
         "No topics yet": "No topics yet",
         "General": "General",
-        "Classifying topic…": "Classifying topic…"
+        "Classifying topic…": "Classifying topic…",
+        "Enable tools (function calling)": "Enable tools (function calling)",
+        "Lets the model call built-in tools like calculator or current time. Requires a tool-capable model.": "Lets the model call built-in tools like calculator or current time. Requires a tool-capable model.",
+        "Arguments": "Arguments",
+        "Result": "Result",
+        "Error": "Error",
+        "ok": "ok",
+        "error": "error",
+        "Tool loop exceeded max depth (%1)": "Tool loop exceeded max depth (%1)"
     },
     "es": {
         "RAG Assistant": "Asistente RAG",
@@ -165,7 +173,15 @@ var dictionaries = {
         "System prompt addon (optional)": "Prompt de sistema adicional (opcional)",
         "No topics yet": "Aún no hay temas",
         "General": "General",
-        "Classifying topic…": "Clasificando tema…"
+        "Classifying topic…": "Clasificando tema…",
+        "Enable tools (function calling)": "Habilitar herramientas (function calling)",
+        "Lets the model call built-in tools like calculator or current time. Requires a tool-capable model.": "Permite al modelo invocar herramientas integradas como calculadora u hora actual. Requiere un modelo compatible.",
+        "Arguments": "Argumentos",
+        "Result": "Resultado",
+        "Error": "Error",
+        "ok": "ok",
+        "error": "error",
+        "Tool loop exceeded max depth (%1)": "El bucle de herramientas superó la profundidad máxima (%1)"
     },
     "nl": {
         "RAG Assistant": "RAG-assistent",
@@ -248,7 +264,15 @@ var dictionaries = {
         "System prompt addon (optional)": "Aanvullende system prompt (optioneel)",
         "No topics yet": "Nog geen onderwerpen",
         "General": "Algemeen",
-        "Classifying topic…": "Onderwerp classificeren…"
+        "Classifying topic…": "Onderwerp classificeren…",
+        "Enable tools (function calling)": "Tools inschakelen (function calling)",
+        "Lets the model call built-in tools like calculator or current time. Requires a tool-capable model.": "Laat het model ingebouwde tools aanroepen zoals rekenmachine of huidige tijd. Vereist een tool-compatibel model.",
+        "Arguments": "Argumenten",
+        "Result": "Resultaat",
+        "Error": "Fout",
+        "ok": "ok",
+        "error": "fout",
+        "Tool loop exceeded max depth (%1)": "Tool-lus overschreed maximale diepte (%1)"
     }
 };
 

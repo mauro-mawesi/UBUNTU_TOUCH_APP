@@ -16,14 +16,22 @@ Item {
     property bool speaking: false
     signal speakRequested()
 
+    // Tool-call rendering (role === "tool")
+    property string toolName: ""
+    property string toolArgs: ""
+    property string toolResult: ""
+    property string toolError: ""
+    property bool toolExpanded: false
+
     readonly property bool isUser: role === "user"
     readonly property bool isSystem: role === "system"
+    readonly property bool isTool: role === "tool"
 
     // F7: which chip is currently expanded (-1 = none)
     property int expandedSourceIdx: -1
 
     width: parent ? parent.width : 0
-    height: bg.height + units.gu(1.2)
+    height: isTool ? (toolCard.height + units.gu(1.0)) : (bg.height + units.gu(1.2))
 
     // F1: hidden helper to push text into the system clipboard
     TextEdit {
@@ -39,6 +47,7 @@ Item {
 
     Rectangle {
         id: bg
+        visible: !bubble.isTool
         anchors {
             top: parent.top
             topMargin: units.gu(0.4)
@@ -358,6 +367,144 @@ Item {
                     }
                 }
             }
+        }
+    }
+
+    // ---- tool-call card (collapsible) ----
+    Rectangle {
+        id: toolCard
+        visible: bubble.isTool
+        anchors {
+            top: parent.top
+            topMargin: units.gu(0.4)
+            left: parent.left
+            leftMargin: units.gu(1.5)
+            rightMargin: units.gu(1.5)
+        }
+        width: Math.min(parent.width - units.gu(3), units.gu(55))
+        height: toolCol.implicitHeight + units.gu(1.2)
+        radius: units.gu(1.2)
+        color: appTheme.surfaceAlt
+        border.color: bubble.toolError.length > 0 ? appTheme.danger : appTheme.border
+        border.width: 1
+
+        Column {
+            id: toolCol
+            anchors {
+                left: parent.left; right: parent.right
+                top: parent.top
+                topMargin: units.gu(0.6)
+                leftMargin: units.gu(1)
+                rightMargin: units.gu(1)
+            }
+            spacing: units.gu(0.4)
+
+            // Header row: icon + name + status + expand toggle
+            RowLayout {
+                width: parent.width
+                spacing: units.gu(0.6)
+
+                Icon {
+                    Layout.preferredWidth: units.gu(1.8)
+                    Layout.preferredHeight: units.gu(1.8)
+                    Layout.alignment: Qt.AlignVCenter
+                    name: bubble.toolError.length > 0 ? "dialog-warning-symbolic" : "preferences-system-symbolic"
+                    color: bubble.toolError.length > 0 ? appTheme.danger : appTheme.primary
+                }
+                Label {
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
+                    text: bubble.toolName
+                    color: appTheme.text
+                    textSize: Label.Small
+                    font.bold: true
+                    elide: Text.ElideRight
+                }
+                Label {
+                    Layout.alignment: Qt.AlignVCenter
+                    text: bubble.toolError.length > 0
+                          ? (i18nApp ? i18nApp.tr("error") : "error")
+                          : (i18nApp ? i18nApp.tr("ok") : "ok")
+                    color: bubble.toolError.length > 0 ? appTheme.danger : appTheme.textSecondary
+                    textSize: Label.XSmall
+                }
+                Icon {
+                    Layout.preferredWidth: units.gu(1.6)
+                    Layout.preferredHeight: units.gu(1.6)
+                    Layout.alignment: Qt.AlignVCenter
+                    name: bubble.toolExpanded ? "up" : "down"
+                    color: appTheme.textSecondary
+                }
+            }
+
+            // Expanded body: args + result/error
+            Column {
+                width: parent.width
+                spacing: units.gu(0.4)
+                visible: bubble.toolExpanded
+
+                Label {
+                    width: parent.width
+                    text: i18nApp ? i18nApp.tr("Arguments") : "Arguments"
+                    color: appTheme.textMuted
+                    textSize: Label.XSmall
+                    font.bold: true
+                }
+                Rectangle {
+                    width: parent.width
+                    height: argsLabel.implicitHeight + units.gu(0.8)
+                    radius: units.gu(0.4)
+                    color: appTheme.codeBg
+                    Label {
+                        id: argsLabel
+                        anchors {
+                            left: parent.left; right: parent.right
+                            top: parent.top
+                            margins: units.gu(0.4)
+                        }
+                        text: bubble.toolArgs.length > 0 ? bubble.toolArgs : "{}"
+                        color: appTheme.text
+                        textSize: Label.XSmall
+                        wrapMode: Text.Wrap
+                        font.family: "Monospace"
+                    }
+                }
+
+                Label {
+                    width: parent.width
+                    text: bubble.toolError.length > 0
+                          ? (i18nApp ? i18nApp.tr("Error") : "Error")
+                          : (i18nApp ? i18nApp.tr("Result") : "Result")
+                    color: appTheme.textMuted
+                    textSize: Label.XSmall
+                    font.bold: true
+                }
+                Rectangle {
+                    width: parent.width
+                    height: resultLabel.implicitHeight + units.gu(0.8)
+                    radius: units.gu(0.4)
+                    color: appTheme.codeBg
+                    Label {
+                        id: resultLabel
+                        anchors {
+                            left: parent.left; right: parent.right
+                            top: parent.top
+                            margins: units.gu(0.4)
+                        }
+                        text: bubble.toolError.length > 0 ? bubble.toolError : bubble.toolResult
+                        color: bubble.toolError.length > 0 ? appTheme.danger : appTheme.text
+                        textSize: Label.XSmall
+                        wrapMode: Text.Wrap
+                        font.family: "Monospace"
+                    }
+                }
+            }
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: bubble.toolExpanded = !bubble.toolExpanded
         }
     }
 }

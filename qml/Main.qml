@@ -18,6 +18,7 @@ import QtQuick 2.7
 import Lomiri.Components 1.3
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
+import "components"
 
 MainView {
     id: root
@@ -63,6 +64,7 @@ MainView {
         property string apiKey: ""
         property string model: "google/gemini-2.5-pro"
         property string openrouterUrl: "https://openrouter.ai/api/v1"
+        property bool toolsEnabled: true
 
         property string chromaUrl: "http://172.28.18.200:8000"
         property string tenant: "default_tenant"
@@ -102,6 +104,14 @@ MainView {
         appSettings: appSettings
         i18nApp: i18nApp
         appTheme: appTheme
+        themeTransition: themeTransition
+    }
+
+    ThemeTransition {
+        id: themeTransition
+        anchors.fill: parent
+        captureSource: root
+        onApply: appSettings.themeMode = mode
     }
 
     SplashScreen {

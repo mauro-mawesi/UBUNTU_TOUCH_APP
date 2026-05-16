@@ -109,11 +109,14 @@ The user wants this to become a **company "brain"** with topic-segmented RAG and
 - Optional **Auto mode**: small classifier LLM call picks the topic per query (or query-all + re-rank — RAG fusion)
 - Settings: CRUD over topics
 
-### Phase 2a — Tool harness POC
-- Use OpenRouter / Gemini 2.5 **function calling** (OpenAI-style `tools` param)
-- Start with ONE dummy tool (`get_current_time` or similar) to validate the loop:
-  - LLM returns `tool_calls` → app executes → append `role:"tool"` message → re-prompt LLM → final answer
-- UI: collapsible "tool call" bubble showing what was called + result (critical for user trust)
+### Phase 2a — Tool harness POC ✅ shipped
+- `qml/js/tools/registry.js` + `builtins.js` expose tools in OpenAI's `tools` schema. Two POC builtins: `get_current_time` and `calculator` (sandboxed math eval).
+- `OpenRouterClient.streamChat` accumulates streamed `delta.tool_calls[i]` chunks keyed by index, parses arguments JSON at finish, returns them to `onDone(text, usage, toolCalls)`.
+- `RagOrchestrator.runWithTools(settings, messages, callbacks, depth)` drives the loop: stream → if tool_calls, append the assistant message with `tool_calls`, execute each via `settings.toolRegistry`, append one `role:"tool"` reply per call with `tool_call_id`, recurse. Capped at `MAX_TOOL_DEPTH = 5`.
+- Callbacks ChatPage hooks into: `onPreTools(text, calls)` (finalize/clean current assistant placeholder), `onToolDone(call, result)` (append a tool bubble), `onRoundStart(depth)` (append a fresh assistant placeholder for the next round).
+- `streamingIdx` in ChatPage tracks the index of the currently-streaming assistant bubble so tool bubbles slotted in mid-turn don't corrupt content updates.
+- Tool turns are NOT persisted to SQLite — only `user` and `assistant` messages are. Tool context lives only inside one user turn.
+- Toggle: `appSettings.toolsEnabled` (Language model card in Settings). When off, `streamChat` body omits `tools` entirely.
 
 ### Phase 2b — Real tools via FastAPI backend on 172.28.18.200
 - `/tools/sql` — configurable DB connections, sandboxed `SELECT`-only by default
