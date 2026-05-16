@@ -67,10 +67,29 @@ Item {
         font.pixelSize: FontUtils.sizeToPixels("medium")
         text: bubble.text
     }
+
+    // F5: separate metric for the phase label (retrieving/classifying/
+    // thinking). The bubble width otherwise floors at gu(14), which is
+    // narrower than e.g. "Onderwerp classificeren…" + typing dots, so the
+    // phase row overflows the bubble in nl/long-translation locales.
+    TextMetrics {
+        id: phaseMetrics
+        font.pixelSize: FontUtils.sizeToPixels("x-small")
+        text: bubble.phase === "retrieving"
+              ? (i18nApp ? i18nApp.tr("Searching context…") : "Searching context…")
+              : (bubble.phase === "classifying"
+                 ? (i18nApp ? i18nApp.tr("Classifying topic…") : "Classifying topic…")
+                 : (i18nApp ? i18nApp.tr("Thinking…") : "Thinking…"))
+    }
+
+    readonly property real _phaseFloorW: (bubble.streaming && bubble.text.length === 0)
+            ? phaseMetrics.width + units.gu(8)  // typing dots + spacing + padding
+            : 0
+
     readonly property real _bubbleW: Math.min(
         parent ? (parent.width - units.gu(3)) : units.gu(40),
         units.gu(55),
-        Math.max(units.gu(14), textMetrics.width + units.gu(5)))
+        Math.max(units.gu(14), textMetrics.width + units.gu(5), _phaseFloorW))
 
     // Soft elevation shadow under assistant bubbles. Without it the white
     // bubble sits invisibly on the very-light-grey gradient in light mode.
