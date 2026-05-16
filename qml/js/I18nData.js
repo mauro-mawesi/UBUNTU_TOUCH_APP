@@ -90,7 +90,12 @@ var dictionaries = {
         "Error": "Error",
         "ok": "ok",
         "error": "error",
-        "Tool loop exceeded max depth (%1)": "Tool loop exceeded max depth (%1)"
+        "Tool loop exceeded max depth (%1)": "Tool loop exceeded max depth (%1)",
+        "What would you like to know today?": "What would you like to know today?",
+        "Enter to send · Shift+Enter for newline": "Enter to send · Shift+Enter for newline",
+        "Attach a file": "Attach a file",
+        "Coming soon": "Coming soon",
+        "Auto": "Auto"
     },
     "es": {
         "RAG Assistant": "Asistente RAG",
@@ -181,7 +186,12 @@ var dictionaries = {
         "Error": "Error",
         "ok": "ok",
         "error": "error",
-        "Tool loop exceeded max depth (%1)": "El bucle de herramientas superó la profundidad máxima (%1)"
+        "Tool loop exceeded max depth (%1)": "El bucle de herramientas superó la profundidad máxima (%1)",
+        "What would you like to know today?": "¿Qué quieres saber hoy?",
+        "Enter to send · Shift+Enter for newline": "Enter para enviar · Shift+Enter para nueva línea",
+        "Attach a file": "Adjuntar archivo",
+        "Coming soon": "Próximamente",
+        "Auto": "Auto"
     },
     "nl": {
         "RAG Assistant": "RAG-assistent",
@@ -272,7 +282,12 @@ var dictionaries = {
         "Error": "Fout",
         "ok": "ok",
         "error": "fout",
-        "Tool loop exceeded max depth (%1)": "Tool-lus overschreed maximale diepte (%1)"
+        "Tool loop exceeded max depth (%1)": "Tool-lus overschreed maximale diepte (%1)",
+        "What would you like to know today?": "Wat wil je vandaag weten?",
+        "Enter to send · Shift+Enter for newline": "Enter om te versturen · Shift+Enter voor nieuwe regel",
+        "Attach a file": "Bestand bijvoegen",
+        "Coming soon": "Binnenkort beschikbaar",
+        "Auto": "Auto"
     }
 };
 

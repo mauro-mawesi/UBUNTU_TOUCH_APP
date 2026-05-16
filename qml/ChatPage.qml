@@ -521,9 +521,12 @@ Page {
             top: page.header.bottom
             left: parent.left; right: parent.right
         }
-        height: units.gu(4.2)
+        height: topics.length > 1 ? units.gu(4.2) : 0
+        visible: topics.length > 1
         color: "transparent"
         z: 1
+        clip: true
+        Behavior on height { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
 
         Rectangle {
             anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
@@ -561,14 +564,26 @@ Page {
                     }
                     spacing: units.gu(0.6)
 
-                    Rectangle {
-                        Layout.preferredWidth: units.gu(1.2)
-                        Layout.preferredHeight: units.gu(1.2)
+                    // Indicator — solid disc when topic pinned, reload icon when Auto.
+                    Item {
+                        Layout.preferredWidth: units.gu(1.6)
+                        Layout.preferredHeight: units.gu(1.6)
                         Layout.alignment: Qt.AlignVCenter
-                        radius: width / 2
-                        color: currentTopic ? topicColor(currentTopic) : "transparent"
-                        border.color: currentTopic ? "transparent" : appTheme.textMuted
-                        border.width: currentTopic ? 0 : 1
+
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: width / 2
+                            color: currentTopic ? topicColor(currentTopic) : appTheme.surfaceHover
+                            border.color: appTheme.borderStrong
+                            border.width: currentTopic ? 0 : 1
+                        }
+                        Icon {
+                            anchors.centerIn: parent
+                            width: units.gu(1.1); height: width
+                            name: "reload"
+                            color: appTheme.textSecondary
+                            visible: !currentTopic
+                        }
                     }
                     Label {
                         Layout.alignment: Qt.AlignVCenter
@@ -586,11 +601,8 @@ Page {
                     }
                 }
 
-                MouseArea {
+                PressEffect {
                     id: chipMouseArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
                     onClicked: PopupUtils.open(topicPicker, topicChip)
                 }
             }
@@ -644,30 +656,19 @@ Page {
                         ColumnLayout {
                             anchors.horizontalCenter: parent.horizontalCenter
                             anchors.verticalCenter: parent.verticalCenter
-                            width: Math.min(parent.width, units.gu(50))
+                            width: Math.min(parent.width, page.wideMode ? units.gu(64) : units.gu(50))
                             spacing: units.gu(1.5)
 
-                            Rectangle {
+                            BrandMark {
                                 Layout.alignment: Qt.AlignHCenter
-                                Layout.preferredWidth: units.gu(8)
-                                Layout.preferredHeight: units.gu(8)
-                                radius: width / 2
-                                gradient: Gradient {
-                                    GradientStop { position: 0.0; color: appTheme.primary }
-                                    GradientStop { position: 1.0; color: appTheme.secondary }
-                                }
-                                Label {
-                                    anchors.centerIn: parent
-                                    text: "✦"
-                                    color: "white"
-                                    font.pixelSize: units.gu(4.5)
-                                }
+                                appTheme: page.appTheme
+                                size: units.gu(8)
                             }
 
                             Label {
                                 Layout.alignment: Qt.AlignHCenter
                                 Layout.fillWidth: true
-                                text: i18nApp.tr("Ask anything about your documents")
+                                text: i18nApp.tr("What would you like to know today?")
                                 textSize: Label.Large
                                 color: appTheme.text
                                 font.bold: true
@@ -678,7 +679,7 @@ Page {
                             Label {
                                 Layout.alignment: Qt.AlignHCenter
                                 Layout.fillWidth: true
-                                text: i18nApp.tr("Your assistant retrieves relevant context from the knowledge base and answers using a language model.")
+                                text: i18nApp.tr("Ask anything about your documents")
                                 textSize: Label.Small
                                 color: appTheme.textSecondary
                                 horizontalAlignment: Text.AlignHCenter
@@ -687,26 +688,34 @@ Page {
 
                             Item { Layout.preferredHeight: units.gu(1.5) }
 
-                            SuggestionCard {
+                            GridLayout {
                                 Layout.fillWidth: true
-                                appTheme: page.appTheme
-                                title: i18nApp.tr("Summarize the working hours policy")
-                                subtitle: i18nApp.tr("From the internal regulations")
-                                onClicked: sendQuery(title)
-                            }
-                            SuggestionCard {
-                                Layout.fillWidth: true
-                                appTheme: page.appTheme
-                                title: i18nApp.tr("What are the security and JWT requirements?")
-                                subtitle: i18nApp.tr("From operations and security docs")
-                                onClicked: sendQuery(title)
-                            }
-                            SuggestionCard {
-                                Layout.fillWidth: true
-                                appTheme: page.appTheme
-                                title: i18nApp.tr("List the vacation rules")
-                                subtitle: i18nApp.tr("From HR documents")
-                                onClicked: sendQuery(title)
+                                columns: page.wideMode ? 2 : 1
+                                columnSpacing: units.gu(1.0)
+                                rowSpacing: units.gu(1.0)
+
+                                SuggestionCard {
+                                    Layout.fillWidth: true
+                                    appTheme: page.appTheme
+                                    title: i18nApp.tr("Summarize the working hours policy")
+                                    subtitle: i18nApp.tr("From the internal regulations")
+                                    onClicked: sendQuery(title)
+                                }
+                                SuggestionCard {
+                                    Layout.fillWidth: true
+                                    appTheme: page.appTheme
+                                    title: i18nApp.tr("What are the security and JWT requirements?")
+                                    subtitle: i18nApp.tr("From operations and security docs")
+                                    onClicked: sendQuery(title)
+                                }
+                                SuggestionCard {
+                                    Layout.fillWidth: true
+                                    Layout.columnSpan: page.wideMode ? 2 : 1
+                                    appTheme: page.appTheme
+                                    title: i18nApp.tr("List the vacation rules")
+                                    subtitle: i18nApp.tr("From HR documents")
+                                    onClicked: sendQuery(title)
+                                }
                             }
                         }
                     }
@@ -840,6 +849,29 @@ Page {
                             }
                         }
 
+                        // Attach button (placeholder — disabled until backend supports uploads)
+                        Rectangle {
+                            id: attachBtn
+                            Layout.alignment: Qt.AlignVCenter
+                            Layout.preferredWidth: units.gu(4.5)
+                            Layout.preferredHeight: units.gu(4.5)
+                            radius: width / 2
+                            color: "transparent"
+                            border.color: appTheme.border
+                            border.width: 1
+                            opacity: 0.45
+                            visible: !page.busy
+
+                            Icon {
+                                anchors.centerIn: parent
+                                width: units.gu(1.8); height: width
+                                name: "attachment"
+                                color: appTheme.textSecondary
+                            }
+                            // Disabled — no PressEffect attached. Tooltip-equivalent
+                            // is shown via the icon name + placeholder until uploads ship.
+                        }
+
                         // Mic button
                         Rectangle {
                             id: micBtn
@@ -896,12 +928,10 @@ Page {
                                 }
                             }
 
-                            MouseArea {
+                            PressEffect {
                                 id: micMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
                                 enabled: !whisper.busy
+                                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
                                 onClicked: {
                                     if (recorder.recording) recorder.stop();
                                     else recorder.start();
@@ -909,30 +939,56 @@ Page {
                             }
                         }
 
-                        // Send button
+                        // Send / stop button
                         Rectangle {
+                            id: sendBtn
                             Layout.alignment: Qt.AlignVCenter
                             Layout.preferredWidth: units.gu(4.5)
                             Layout.preferredHeight: units.gu(4.5)
                             radius: width / 2
+                            readonly property bool idle: input.text.trim().length === 0 && !page.busy
                             color: page.busy ? appTheme.danger
-                                             : (input.text.trim().length === 0 ? appTheme.surfaceHover
+                                             : (idle ? appTheme.surfaceHover
                                                : (sendMouse.containsMouse ? appTheme.secondary : appTheme.primary))
+                            border.color: appTheme.border
+                            border.width: sendBtn.idle ? 1 : 0
                             Behavior on color { ColorAnimation { duration: 120 } }
+
+                            // Pulsing stop ring while a request is in flight.
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: parent.width
+                                height: parent.height
+                                radius: width / 2
+                                color: "transparent"
+                                border.color: appTheme.danger
+                                border.width: 2
+                                visible: page.busy
+                                SequentialAnimation on opacity {
+                                    loops: Animation.Infinite
+                                    running: page.busy
+                                    NumberAnimation { to: 0.0; duration: 800; easing.type: Easing.OutQuad }
+                                    NumberAnimation { to: 1.0; duration: 800; easing.type: Easing.InQuad }
+                                }
+                                SequentialAnimation on scale {
+                                    loops: Animation.Infinite
+                                    running: page.busy
+                                    NumberAnimation { to: 1.6; duration: 800; easing.type: Easing.OutQuad }
+                                    NumberAnimation { to: 1.0; duration: 800; easing.type: Easing.InQuad }
+                                }
+                            }
 
                             Icon {
                                 anchors.centerIn: parent
                                 width: units.gu(2.2); height: width
                                 name: page.busy ? "media-playback-stop" : "send"
-                                color: "white"
+                                color: sendBtn.idle ? appTheme.textSecondary : "white"
                             }
 
-                            MouseArea {
+                            PressEffect {
                                 id: sendMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
                                 enabled: input.text.trim().length > 0 || page.busy
+                                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
                                 onClicked: {
                                     if (page.busy) {
                                         if (activeXhr) { try { activeXhr.abort(); } catch(e) {} }
@@ -948,6 +1004,21 @@ Page {
                             }
                         }
                     }
+                }
+
+                // Keyboard hint — fades in only while composing on wide screens.
+                Label {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: units.gu(2.5)
+                    Layout.rightMargin: units.gu(2.5)
+                    Layout.bottomMargin: units.gu(0.6)
+                    horizontalAlignment: Text.AlignRight
+                    text: i18nApp.tr("Enter to send · Shift+Enter for newline")
+                    color: appTheme.textMuted
+                    textSize: Label.XSmall
+                    visible: page.wideMode
+                    opacity: input.activeFocus ? 0.75 : 0
+                    Behavior on opacity { NumberAnimation { duration: 150 } }
                 }
             }
         }
