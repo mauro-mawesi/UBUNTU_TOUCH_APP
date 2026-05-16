@@ -11,6 +11,7 @@ Page {
     property var i18nApp
     property var appTheme
     property var themeTransition: null
+    property var crtTransition: null
 
     // Emitted whenever topics are created/edited/deleted so ChatPage refreshes.
     signal topicsModified()
@@ -183,10 +184,17 @@ Page {
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
-                                // No wave for accent — the AppTheme color
-                                // properties animate via Behavior on color,
-                                // morphing the whole UI from old to new.
-                                onClicked: appSettings.themePresetIndex = index
+                                // CRT power-down overlay on top of the
+                                // underlying color morph (Behavior in AppTheme).
+                                onClicked: {
+                                    if (appSettings.themePresetIndex === index) return;
+                                    if (page.crtTransition) {
+                                        page.crtTransition.tintColor = modelData.primary;
+                                        page.crtTransition.run(index);
+                                    } else {
+                                        appSettings.themePresetIndex = index;
+                                    }
+                                }
                             }
                         }
                     }

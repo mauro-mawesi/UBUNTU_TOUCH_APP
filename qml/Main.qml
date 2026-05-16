@@ -105,17 +105,29 @@ MainView {
         i18nApp: i18nApp
         appTheme: appTheme
         themeTransition: themeTransition
+        crtTransition: crtTransition
     }
 
     ThemeTransition {
         id: themeTransition
         anchors.fill: parent
         captureSource: root
-        // Payload is a string (mode toggle) or a number (preset index).
+        // Used for dark/light mode toggles only (accent uses CrtTransition).
         onApply: {
             if (typeof payload === "string") {
                 appSettings.themeMode = payload;
             } else if (typeof payload === "number") {
+                appSettings.themePresetIndex = payload;
+            }
+        }
+    }
+
+    CrtTransition {
+        id: crtTransition
+        anchors.fill: parent
+        captureSource: root
+        onApply: {
+            if (typeof payload === "number") {
                 appSettings.themePresetIndex = payload;
             }
         }
