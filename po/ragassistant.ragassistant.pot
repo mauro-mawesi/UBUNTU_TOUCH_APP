@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ragassistant.ragassistant\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-16 19:33+0000\n"
+"POT-Creation-Date: 2026-05-16 19:51+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -352,66 +352,69 @@ msgstr ""
 msgid "Dismiss"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:165
-msgid "Stop speaking"
-msgstr ""
-
-#: ../qml/components/MessageBubble.qml:166
-msgid "Speak message"
-msgstr ""
-
-#: ../qml/components/MessageBubble.qml:196
-msgid "Regenerate response"
-msgstr ""
-
-#: ../qml/components/MessageBubble.qml:240
-msgid "Copy text"
-msgstr ""
-
-#: ../qml/components/MessageBubble.qml:289
-msgid "You"
-msgstr ""
-
-#: ../qml/components/MessageBubble.qml:290
-msgid "Assistant"
-msgstr ""
-
-#: ../qml/components/MessageBubble.qml:290
-msgid "System"
-msgstr ""
-
-#: ../qml/components/MessageBubble.qml:361
+#: ../qml/components/MessageBubble.qml:79
+#: ../qml/components/MessageBubble.qml:380
 msgid "Searching context…"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:363
+#: ../qml/components/MessageBubble.qml:81
+#: ../qml/components/MessageBubble.qml:382
 msgid "Classifying topic…"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:364
+#: ../qml/components/MessageBubble.qml:82
+#: ../qml/components/MessageBubble.qml:383
 msgid "Thinking…"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:505
+#: ../qml/components/MessageBubble.qml:184
+msgid "Stop speaking"
+msgstr ""
+
+#: ../qml/components/MessageBubble.qml:185
+msgid "Speak message"
+msgstr ""
+
+#: ../qml/components/MessageBubble.qml:215
+msgid "Regenerate response"
+msgstr ""
+
+#: ../qml/components/MessageBubble.qml:259
+msgid "Copy text"
+msgstr ""
+
+#: ../qml/components/MessageBubble.qml:308
+msgid "You"
+msgstr ""
+
+#: ../qml/components/MessageBubble.qml:309
+msgid "Assistant"
+msgstr ""
+
+#: ../qml/components/MessageBubble.qml:309
+msgid "System"
+msgstr ""
+
+#: ../qml/components/MessageBubble.qml:524
 msgid "(no snippet)"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:571
+#: ../qml/components/MessageBubble.qml:590
 msgid "error"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:572
+#: ../qml/components/MessageBubble.qml:591
 msgid "ok"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:603
+#: ../qml/components/MessageBubble.qml:622
 msgid "Arguments"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:631
+#: ../qml/components/MessageBubble.qml:650
 msgid "Error"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:632
+#: ../qml/components/MessageBubble.qml:651
 msgid "Result"
 msgstr ""
