@@ -18,7 +18,9 @@ import QtQuick 2.7
 import Lomiri.Components 1.3
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
+import Ragassistant.Util 1.0
 import "components"
+import "js/tools/registry.js" as Tools
 
 MainView {
     id: root
@@ -32,6 +34,11 @@ MainView {
     backgroundColor: appTheme.bg
 
     Component.onCompleted: {
+        // Wire C++ helpers into the .pragma-library tool registry. Must run
+        // before any tool call; ChatPage is the only consumer today and is
+        // built after Main, so doing it here is safe.
+        Tools.setContext({ timeUtil: timeUtil });
+
         i18nApp.language = appSettings.language.length > 0
                            ? appSettings.language
                            : i18nApp.detect(Qt.locale().name);
@@ -39,6 +46,8 @@ MainView {
         // so the splash never flashes by even on a fast cold start.
         splash.ready = true;
     }
+
+    TimeUtil { id: timeUtil }
 
     Connections {
         target: appSettings
@@ -94,6 +103,15 @@ MainView {
         appSettings: appSettings
         pageStack: pageStack
         settingsPage: settingsPage
+        brainPage: brainPage
+        i18nApp: i18nApp
+        appTheme: appTheme
+    }
+
+    BrainPage {
+        id: brainPage
+        visible: false
+        appSettings: appSettings
         i18nApp: i18nApp
         appTheme: appTheme
     }
@@ -105,6 +123,7 @@ MainView {
         i18nApp: i18nApp
         appTheme: appTheme
         themeTransition: themeTransition
+        chatBusy: chatPage.busy
     }
 
     ThemeTransition {

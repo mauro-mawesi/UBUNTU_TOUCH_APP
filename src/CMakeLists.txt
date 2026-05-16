@@ -16,6 +16,8 @@ set(SRC_FILES
     whisperclient.h
     ttsclient.cpp
     ttsclient.h
+    timeutil.cpp
+    timeutil.h
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})

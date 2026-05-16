@@ -181,12 +181,25 @@ function getMessages(convId) {
 function addMessage(convId, role, content, sources) {
     var id = -1;
     var now = Date.now();
+    var sourcesJson = JSON.stringify(_normalizeSources(sources));
     _db().transaction(function(tx) {
-        var r = tx.executeSql(
-            "INSERT INTO messages(conversation_id, role, content, sources, created_at)" +
-            " VALUES (?,?,?,?,?)",
-            [convId, role, content || "", JSON.stringify(_normalizeSources(sources)), now]
-        );
+        // Gotcha #14: QML LocalStorage binds JS "" as SQL NULL, which violates
+        // NOT NULL on `content`. Omit empty content so DEFAULT '' applies —
+        // hits the assistant placeholder seeded before streaming.
+        var r;
+        if (content && content.length > 0) {
+            r = tx.executeSql(
+                "INSERT INTO messages(conversation_id, role, content, sources, created_at)" +
+                " VALUES (?,?,?,?,?)",
+                [convId, role, content, sourcesJson, now]
+            );
+        } else {
+            r = tx.executeSql(
+                "INSERT INTO messages(conversation_id, role, sources, created_at)" +
+                " VALUES (?,?,?,?)",
+                [convId, role, sourcesJson, now]
+            );
+        }
         id = r.insertId;
         tx.executeSql("UPDATE conversations SET updated_at = ? WHERE id = ?", [now, convId]);
     });

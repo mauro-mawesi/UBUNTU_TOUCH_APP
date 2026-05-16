@@ -9,6 +9,7 @@
 #include "audiorecorder.h"
 #include "whisperclient.h"
 #include "ttsclient.h"
+#include "timeutil.h"
 
 int main(int argc, char *argv[]) {
     // PulseAudio refuses to initialize without XDG_RUNTIME_DIR.
@@ -28,6 +29,7 @@ int main(int argc, char *argv[]) {
     qmlRegisterType<AudioRecorder>("Ragassistant.Audio", 1, 0, "AudioRecorder");
     qmlRegisterType<WhisperClient>("Ragassistant.Audio", 1, 0, "WhisperClient");
     qmlRegisterType<TtsClient>("Ragassistant.Audio", 1, 0, "TtsClient");
+    qmlRegisterType<TimeUtil>("Ragassistant.Util", 1, 0, "TimeUtil");
 
     QQuickView view;
     view.setResizeMode(QQuickView::SizeRootObjectToView);

@@ -50,11 +50,18 @@ var EXECUTORS = {
     "calculator": Builtins.calculator
 };
 
+// Runtime context injected from QML so .pragma library executors can reach
+// C++-backed helpers (e.g. TimeUtil for IANA timezone math). Set once at
+// startup via setContext({ timeUtil: ... }).
+var _ctx = {};
+
+function setContext(ctx) { _ctx = ctx || {}; }
+
 function getAll() { return SCHEMAS; }
 
 function execute(name, args, cb) {
     var fn = EXECUTORS[name];
     if (!fn) { cb({ error: "Unknown tool: " + name }); return; }
-    try { fn(args || {}, cb); }
+    try { fn(args || {}, cb, _ctx); }
     catch (e) { cb({ error: String(e.message || e) }); }
 }

@@ -14,6 +14,7 @@ Page {
     property var appSettings
     property var pageStack
     property var settingsPage
+    property var brainPage
     property var i18nApp
     property var appTheme
 
@@ -167,6 +168,11 @@ Page {
                 onTriggered: newConversation()
             },
             Action {
+                iconName: "info"
+                text: i18nApp.tr("Brain metrics")
+                onTriggered: pageStack.push(brainPage)
+            },
+            Action {
                 iconName: "settings"
                 text: i18nApp.tr("Settings")
                 onTriggered: pageStack.push(settingsPage, { appSettings: appSettings })
@@ -175,6 +181,21 @@ Page {
     }
 
     ListModel { id: messagesModel }
+
+    // Idle watchdog for the active LLM/RAG round. Restarted on every sign of
+    // progress (sources, delta, tool calls, new round); stopped on done/error.
+    // If it fires we abort activeXhr — the OpenRouterClient.abort wrapper
+    // turns that into a clean onDone with whatever partial we have so far.
+    Timer {
+        id: queryWatchdog
+        interval: 30000
+        repeat: false
+        onTriggered: {
+            console.log("[chat] queryWatchdog fired — no activity for "
+                        + (interval / 1000) + "s, aborting");
+            if (activeXhr) { try { activeXhr.abort(); } catch(e) {} }
+        }
+    }
 
     // ---- speech to text ----
     AudioRecorder {
@@ -210,6 +231,9 @@ Page {
     function voiceForLanguage(lang) {
         if (appSettings.ttsVoice && appSettings.ttsVoice.length > 0) return appSettings.ttsVoice;
         if (lang === "es") return "ef_dora";
+        // Kokoro has no Dutch voice (per CLAUDE.md infrastructure notes) —
+        // fall back to English af_bella. Don't "fix" this without first
+        // confirming the Kokoro deployment has a nl voice available.
         if (lang === "nl") return "af_bella";
         return "af_bella";
     }
@@ -238,7 +262,11 @@ Page {
         id: tts
         onAudioReady: {
             console.log("[tts] audio ready: " + filePath);
-            ttsPlayer.source = "";  // force reload
+            // Each TTS synthesis produces a unique tts_<epoch>.mp3, so MediaPlayer
+            // sees a fresh source and reloads cleanly. A plain stop() is enough;
+            // the previous empty-string round-trip was paranoia from when files
+            // shared a name.
+            ttsPlayer.stop();
             ttsPlayer.source = "file://" + filePath;
             ttsPlayer.play();
         }
@@ -349,19 +377,30 @@ Page {
         messagesModel.setProperty(idx, "phase", p || "");
     }
 
+    // Surface persistence failures as a visible system bubble instead of a
+    // silent console.log. Caught one bug in the wild already (clickable's
+    // docker writing the SQLite as root, then a native run hitting a readonly
+    // file). Cheap safety net for future recurrences.
+    function _persistError(label, e) {
+        var detail = (e && e.message) ? e.message : String(e);
+        console.log("[chat] persist failed at " + label + ": " + detail);
+        appendMessage("system", "Persistence error at " + label + ": " + detail,
+                      [], false);
+    }
+
     function _runAsk(q, topic) {
         var convId = -1;
         try { convId = ensureConvExists(q); }
-        catch (e) { console.log("[chat] ensureConvExists failed: " + e); }
+        catch (e) { _persistError("ensureConvExists", e); }
 
         try { Store.addMessage(convId, "user", q, []); }
-        catch (e) { console.log("[chat] persist user msg failed: " + e); }
+        catch (e) { _persistError("addMessage(user)", e); }
 
         appendMessage("user", q, [], false);
 
         streamingMsgId = -1;
         try { streamingMsgId = Store.addMessage(convId, "assistant", "", []); }
-        catch (e) { console.log("[chat] persist assistant msg failed: " + e); }
+        catch (e) { _persistError("addMessage(assistant)", e); }
 
         appendMessage("assistant", "", [], true, "retrieving");
         streamingIdx = messagesModel.count - 1;
@@ -398,18 +437,22 @@ Page {
                     + " collection=" + collectionId
                     + " tools=" + (settingsWithLang.tools ? settingsWithLang.tools.length : 0));
 
+        queryWatchdog.restart();   // start the idle-timeout watchdog for this round
         activeXhr = Rag.ask(settingsWithLang, history.slice(), q, {
             onSources: function(items) {
+                queryWatchdog.restart();
                 assistantSources = items;
                 updateLastSources(items);
                 setLastPhase("thinking");
             },
             onDelta: function(t) {
+                queryWatchdog.restart();
                 if (roundText.length === 0) setLastPhase("");
                 roundText += t;
                 updateLast(roundText, true);
             },
             onPreTools: function(text, calls) {
+                queryWatchdog.restart();
                 // Finalize the current assistant placeholder before the tool
                 // bubbles appear. If the model emitted no text in this round
                 // (only tool_calls), drop the empty placeholder for cleanliness.
@@ -424,15 +467,18 @@ Page {
                 streamingIdx = -1;
             },
             onToolDone: function(call, result) {
+                queryWatchdog.restart();
                 appendToolMessage(call, result);
             },
             onRoundStart: function(depth) {
+                queryWatchdog.restart();
                 // New assistant round after tool execution: fresh placeholder.
                 appendMessage("assistant", "", [], true, "thinking");
                 streamingIdx = messagesModel.count - 1;
                 roundText = "";
             },
             onDone: function(full) {
+                queryWatchdog.stop();
                 var text = (full && full.length > 0) ? full : roundText;
                 finalText = text;
                 updateLast(finalText, false);
@@ -457,6 +503,7 @@ Page {
                 }
             },
             onError: function(err) {
+                queryWatchdog.stop();
                 console.log("[chat] onError: " + err);
                 var idx = streamingIdx >= 0 ? streamingIdx : (messagesModel.count - 1);
                 var prefix = roundText.length > 0 ? roundText + "\n\n" : "";
