@@ -11,7 +11,6 @@ Page {
     property var i18nApp
     property var appTheme
     property var themeTransition: null
-    property var crtTransition: null
 
     // Emitted whenever topics are created/edited/deleted so ChatPage refreshes.
     signal topicsModified()
@@ -145,6 +144,10 @@ Page {
                                     }
                                 }
                             }
+                            AccentFlicker {
+                                appTheme: page.appTheme
+                                visible: appSettings.themeMode === modelData.code
+                            }
                         }
                     }
                 }
@@ -184,17 +187,11 @@ Page {
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
-                                // CRT power-down overlay on top of the
-                                // underlying color morph (Behavior in AppTheme).
-                                onClicked: {
-                                    if (appSettings.themePresetIndex === index) return;
-                                    if (page.crtTransition) {
-                                        page.crtTransition.tintColor = modelData.primary;
-                                        page.crtTransition.run(index);
-                                    } else {
-                                        appSettings.themePresetIndex = index;
-                                    }
-                                }
+                                // AppTheme's Behavior on color morphs the
+                                // whole UI smoothly, and the accent-using
+                                // components carry their own AccentFlicker
+                                // for the localized CRT pulse.
+                                onClicked: appSettings.themePresetIndex = index
                             }
                         }
                     }
@@ -255,6 +252,10 @@ Page {
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: appSettings.language = modelData.code
+                            }
+                            AccentFlicker {
+                                appTheme: page.appTheme
+                                visible: appSettings.language === modelData.code
                             }
                         }
                     }
@@ -593,6 +594,7 @@ Page {
                             cursorShape: Qt.PointingHandCursor
                             onClicked: page.openTopicEditor(null)
                         }
+                        AccentFlicker { appTheme: page.appTheme }
                     }
                 }
             }
@@ -748,6 +750,7 @@ Page {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: connectivityCard.testAll()
                     }
+                    AccentFlicker { appTheme: page.appTheme }
                 }
 
                 // Status rows

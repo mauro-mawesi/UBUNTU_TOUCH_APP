@@ -134,6 +134,7 @@ Item {
                 id: newBtnMouse
                 onClicked: root.newChatRequested()
             }
+            AccentFlicker { appTheme: root.appTheme }
         }
 
         // Search field
