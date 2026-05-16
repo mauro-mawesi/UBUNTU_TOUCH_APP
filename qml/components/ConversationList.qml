@@ -1,15 +1,17 @@
 import QtQuick 2.7
 import Lomiri.Components 1.3
 import QtQuick.Layouts 1.3
+import "../js/Time.js" as Time
 
 Item {
     id: root
     property var appTheme
     property var i18nApp
     property var conversations: []      // [{id, title, lastMessage, updatedAt, messageCount, topicId}, ...]
-    property var topics: []             // [{id, colorPresetIndex, ...}, ...] — used for the per-row color dot
+    property var topics: []             // [{id, colorPresetIndex, ...}, ...]
     property int currentId: -1
     property string filterText: ""
+    property bool wideMode: true        // false → row actions are always visible (touch UX)
 
     function _topicColorFor(topicId) {
         if (!topicId || topicId <= 0) return "transparent";
@@ -41,6 +43,21 @@ Item {
         return out;
     }
 
+    // Each row gets a `_bucket` for the ListView section header.
+    readonly property var groupedConversations: {
+        var src = filteredConversations;
+        var lang = (i18nApp && i18nApp.language) ? i18nApp.language : "en";
+        var out = [];
+        for (var i = 0; i < src.length; i++) {
+            var c = src[i];
+            var copy = {};
+            for (var k in c) copy[k] = c[k];
+            copy._bucket = Time.dateBucket(c.updatedAt, lang);
+            out.push(copy);
+        }
+        return out;
+    }
+
     Rectangle {
         anchors.fill: parent
         color: appTheme.surface
@@ -63,57 +80,35 @@ Item {
         // Header
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: units.gu(7)
+            Layout.preferredHeight: units.gu(6)
             color: "transparent"
 
-            RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: units.gu(1.5)
-                anchors.rightMargin: units.gu(1.5)
-                spacing: units.gu(1)
-
-                Rectangle {
-                    Layout.preferredWidth: units.gu(3.5)
-                    Layout.preferredHeight: units.gu(3.5)
-                    Layout.alignment: Qt.AlignVCenter
-                    radius: width / 2
-                    gradient: Gradient {
-                        GradientStop { position: 0; color: appTheme.primary }
-                        GradientStop { position: 1; color: appTheme.secondary }
-                    }
-                    Label {
-                        anchors.centerIn: parent
-                        text: "✦"
-                        color: "white"
-                        font.pixelSize: units.gu(2)
-                    }
+            BrandMark {
+                anchors {
+                    left: parent.left
+                    verticalCenter: parent.verticalCenter
+                    leftMargin: units.gu(1.5)
                 }
-
-                Label {
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignVCenter
-                    text: i18nApp.tr("RAG Assistant")
-                    color: appTheme.text
-                    textSize: Label.Medium
-                    font.bold: true
-                    elide: Text.ElideRight
-                }
+                appTheme: root.appTheme
+                size: units.gu(3.5)
             }
         }
 
-        // New chat button
+        // New chat button — primary filled action.
         Rectangle {
             id: newBtn
             Layout.fillWidth: true
             Layout.preferredHeight: units.gu(5)
             Layout.leftMargin: units.gu(1)
             Layout.rightMargin: units.gu(1)
+            Layout.topMargin: units.gu(0.2)
             Layout.bottomMargin: units.gu(0.5)
-            radius: units.gu(1)
-            color: newBtnMouse.containsMouse ? appTheme.surfaceHover : "transparent"
-            border.color: appTheme.border
-            border.width: 1
-            Behavior on color { ColorAnimation { duration: 100 } }
+            radius: appTheme.radiusMd
+            color: newBtnMouse.pressed
+                   ? appTheme.secondary
+                   : (newBtnMouse.containsMouse ? Qt.lighter(appTheme.primary, 1.08)
+                                                : appTheme.primary)
+            Behavior on color { ColorAnimation { duration: 120 } }
 
             RowLayout {
                 anchors.fill: parent
@@ -125,21 +120,18 @@ Item {
                     Layout.preferredWidth: units.gu(1.8)
                     Layout.preferredHeight: units.gu(1.8)
                     name: "add"
-                    color: appTheme.text
+                    color: appTheme.textOnPrimary
                 }
                 Label {
                     Layout.fillWidth: true
                     text: i18nApp.tr("New chat")
-                    color: appTheme.text
+                    color: appTheme.textOnPrimary
                     textSize: Label.Small
                     font.bold: true
                 }
             }
-            MouseArea {
+            PressEffect {
                 id: newBtnMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
                 onClicked: root.newChatRequested()
             }
         }
@@ -214,11 +206,8 @@ Item {
                     name: "close"
                     color: appTheme.textMuted
                 }
-                MouseArea {
+                PressEffect {
                     id: clearMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
                     onClicked: { searchInput.text = ""; searchInput.forceActiveFocus(); }
                 }
             }
@@ -230,17 +219,36 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            model: root.filteredConversations
+            model: root.groupedConversations
             spacing: units.gu(0.2)
             topMargin: units.gu(0.5)
             bottomMargin: units.gu(1)
             leftMargin: units.gu(0.8)
             rightMargin: units.gu(0.8)
 
+            section.property: "_bucket"
+            section.delegate: Item {
+                width: ListView.view.width
+                height: units.gu(3.2)
+                Label {
+                    anchors {
+                        left: parent.left
+                        bottom: parent.bottom
+                        leftMargin: units.gu(1.2)
+                        bottomMargin: units.gu(0.4)
+                    }
+                    text: section
+                    color: appTheme.textMuted
+                    textSize: Label.XSmall
+                    font.bold: true
+                }
+            }
+
             delegate: Rectangle {
+                id: row
                 width: ListView.view.width - units.gu(1.6)
                 height: itemCol.implicitHeight + units.gu(1.6)
-                radius: units.gu(1)
+                radius: appTheme.radiusMd
                 readonly property bool isActive: modelData.id === root.currentId
                 color: isActive ? appTheme.bgAccent
                                 : (itemMouse.containsMouse ? appTheme.surfaceHover : "transparent")
@@ -248,12 +256,29 @@ Item {
                 border.width: 1
                 Behavior on color { ColorAnimation { duration: 100 } }
 
+                // Vertical topic color bar (left edge).
+                Rectangle {
+                    id: topicBar
+                    anchors {
+                        left: parent.left
+                        top: parent.top
+                        bottom: parent.bottom
+                        leftMargin: units.gu(0.5)
+                        topMargin: units.gu(0.6)
+                        bottomMargin: units.gu(0.6)
+                    }
+                    width: units.gu(0.45)
+                    radius: width / 2
+                    color: root._topicColorFor(modelData.topicId)
+                    visible: modelData.topicId > 0
+                }
+
                 ColumnLayout {
                     id: itemCol
                     anchors {
                         left: parent.left; right: actionsRow.left
                         verticalCenter: parent.verticalCenter
-                        leftMargin: units.gu(1)
+                        leftMargin: units.gu(1.4)
                         rightMargin: units.gu(0.4)
                     }
                     spacing: units.gu(0.2)
@@ -261,15 +286,6 @@ Item {
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: units.gu(0.6)
-
-                        Rectangle {
-                            Layout.preferredWidth: units.gu(0.9)
-                            Layout.preferredHeight: units.gu(0.9)
-                            Layout.alignment: Qt.AlignVCenter
-                            radius: width / 2
-                            color: root._topicColorFor(modelData.topicId)
-                            visible: modelData.topicId > 0
-                        }
 
                         Label {
                             Layout.fillWidth: true
@@ -280,6 +296,13 @@ Item {
                             textSize: Label.Small
                             elide: Text.ElideRight
                             maximumLineCount: 1
+                        }
+                        Label {
+                            text: Time.relativeShort(modelData.updatedAt,
+                                                     i18nApp ? i18nApp.language : "en")
+                            color: appTheme.textMuted
+                            textSize: Label.XSmall
+                            visible: text.length > 0
                         }
                     }
                     Label {
@@ -302,7 +325,10 @@ Item {
                         rightMargin: units.gu(0.4)
                     }
                     spacing: units.gu(0.2)
-                    visible: itemMouse.containsMouse || renameMouse.containsMouse || deleteMouse.containsMouse
+                    visible: !root.wideMode
+                             || itemMouse.containsMouse
+                             || renameMouse.containsMouse
+                             || deleteMouse.containsMouse
 
                     Rectangle {
                         width: units.gu(3); height: units.gu(3)
@@ -314,11 +340,8 @@ Item {
                             name: "edit"
                             color: appTheme.textSecondary
                         }
-                        MouseArea {
+                        PressEffect {
                             id: renameMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
                             onClicked: root.renameRequested(modelData.id, modelData.title)
                         }
                     }
@@ -332,11 +355,8 @@ Item {
                             name: "delete"
                             color: deleteMouse.containsMouse ? "white" : appTheme.textSecondary
                         }
-                        MouseArea {
+                        PressEffect {
                             id: deleteMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
                             onClicked: root.deleteRequested(modelData.id, modelData.title)
                         }
                     }

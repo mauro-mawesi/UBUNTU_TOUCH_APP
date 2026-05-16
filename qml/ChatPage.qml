@@ -616,6 +616,7 @@ Page {
             conversations: page.conversations
             topics: page.topics
             currentId: page.currentConvId
+            wideMode: page.wideMode
             onNewChatRequested: newConversation()
             onConversationSelected: selectConversation(id)
             onRenameRequested: openRenameDialog(id, currentTitle)
@@ -993,6 +994,7 @@ Page {
             conversations: page.conversations
             topics: page.topics
             currentId: page.currentConvId
+            wideMode: page.wideMode
             onNewChatRequested: newConversation()
             onConversationSelected: selectConversation(id)
             onRenameRequested: openRenameDialog(id, currentTitle)
