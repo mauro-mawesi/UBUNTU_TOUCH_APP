@@ -13,6 +13,12 @@
 
 TtsClient::TtsClient(QObject *parent) : QObject(parent) {}
 
+TtsClient::~TtsClient() {
+    // App shutdown shouldn't wait for an in-flight reply. cancel() is safe
+    // when idle (m_currentReply is QPointer and may already be null).
+    cancel();
+}
+
 void TtsClient::setBusy(bool b) {
     if (m_busy == b) return;
     m_busy = b;
@@ -65,7 +71,8 @@ void TtsClient::synthesize(const QString &serverUrl, const QString &text,
         }
         if (reply->error() != QNetworkReply::NoError) {
             const QString msg = QStringLiteral("HTTP error: ") + reply->errorString();
-            qWarning() << "[tts]" << msg << "body:" << reply->readAll().left(500);
+            // Drop response body — TTS errors can echo request snippets.
+            qWarning() << "[tts]" << msg << "(body redacted)";
             emit errorOccurred(msg);
             reply->deleteLater();
             return;
@@ -80,6 +87,18 @@ void TtsClient::synthesize(const QString &serverUrl, const QString &text,
 
         const QString dir = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
         QDir().mkpath(dir);
+
+        // Bound the TTS cache: keep at most one tts_* file on disk by sweeping
+        // prior synth outputs (any extension) before writing the new one.
+        // A MediaPlayer currently playing a deleted file keeps its open handle
+        // valid on Linux until the player closes it.
+        {
+            QDir cacheDir(dir);
+            const QStringList stale = cacheDir.entryList(
+                QStringList() << QStringLiteral("tts_*"), QDir::Files);
+            for (const QString &name : stale) QFile::remove(cacheDir.filePath(name));
+        }
+
         const QString path = QStringLiteral("%1/tts_%2.%3")
                                  .arg(dir)
                                  .arg(QDateTime::currentMSecsSinceEpoch())

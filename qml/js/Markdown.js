@@ -6,15 +6,16 @@ function escapeHtml(s) {
             .replace(/>/g, "&gt;");
 }
 
-function escapeInline(s) {
-    return s.replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
-}
+// Private-use Unicode marker. Built programmatically because a literal PUA
+// codepoint has been silently stripped by an editor/linter in this project's
+// toolchain at least once before — see memory/feedback_unicode_markers.md.
+var _CODE_MARK = String.fromCharCode(0xE000);
 
-// Private-use Unicode marker — won't collide with anything in user input
-// and survives escapeInline() (which only touches &, <, >).
-var _CODE_MARK = "";
+// Schemes considered safe to render as a clickable link. Anything else (in
+// particular javascript:, file:, data:) is rendered as literal text so a
+// retrieved document or model reply can't smuggle a navigation payload into
+// the bubble.
+var _SAFE_LINK_SCHEME = /^(https?:|mailto:)/i;
 
 function renderInline(text, theme) {
     var codeBg = (theme && theme.codeBg) || "#0d1117";
@@ -22,14 +23,18 @@ function renderInline(text, theme) {
 
     var codeSlots = [];
     text = text.replace(/`([^`\n]+)`/g, function(_, c) {
-        codeSlots.push('<code style="background-color:' + codeBg + '; padding:1px 4px; border-radius:3px; font-family:monospace;">' + escapeInline(c) + '</code>');
+        codeSlots.push('<code style="background-color:' + codeBg + '; padding:1px 4px; border-radius:3px; font-family:monospace;">' + escapeHtml(c) + '</code>');
         return _CODE_MARK + (codeSlots.length - 1) + _CODE_MARK;
     });
 
-    text = escapeInline(text);
+    text = escapeHtml(text);
 
     text = text.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function(_, label, url) {
-        return '<a href="' + url + '" style="color:' + linkColor + '">' + label + '</a>';
+        if (!_SAFE_LINK_SCHEME.test(url)) {
+            return escapeHtml("[" + label + "](" + url + ")");
+        }
+        var safeUrl = url.replace(/"/g, "%22");
+        return '<a href="' + safeUrl + '" style="color:' + linkColor + '">' + escapeHtml(label) + '</a>';
     });
 
     text = text.replace(/\*\*([^\*]+)\*\*/g, '<b>$1</b>');

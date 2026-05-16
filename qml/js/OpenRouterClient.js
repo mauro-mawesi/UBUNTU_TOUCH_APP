@@ -8,7 +8,9 @@ function streamChat(opts, messages, callbacks) {
     var url = (opts.baseUrl || "https://openrouter.ai/api/v1").replace(/\/+$/, "") + "/chat/completions";
     console.log("[openrouter] POST " + url + " model=" + opts.model + " hasKey=" + (!!opts.apiKey) + " msgCount=" + messages.length);
     xhr.open("POST", url);
-    xhr.setRequestHeader("Authorization", "Bearer " + opts.apiKey);
+    if (opts.apiKey && opts.apiKey.length > 0) {
+        xhr.setRequestHeader("Authorization", "Bearer " + opts.apiKey);
+    }
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.setRequestHeader("Accept", "text/event-stream");
     if (opts.appTitle) xhr.setRequestHeader("X-Title", opts.appTitle);
@@ -78,7 +80,14 @@ function streamChat(opts, messages, callbacks) {
         }
         if (dataParts.length === 0) return;
         var payload = dataParts.join("\n");
-        if (payload === "[DONE]") { done = true; return; }
+        if (payload === "[DONE]") {
+            // Don't wait for readyState===DONE — OpenRouter sometimes keeps
+            // the socket open with keep-alives after the terminator, which
+            // delays UI hand-off by several seconds.
+            done = true;
+            finish(false);
+            return;
+        }
         try {
             var obj = JSON.parse(payload);
             if (obj.usage) usage = obj.usage;
@@ -137,7 +146,10 @@ function streamChat(opts, messages, callbacks) {
                 return;
             }
             if (xhr.readyState === XMLHttpRequest.DONE && xhr.status >= 400) {
-                console.log("[openrouter] HTTP " + xhr.status + " body=" + xhr.responseText.substring(0, 200));
+                // The body may echo upstream auth diagnostics — keep it out of
+                // persisted logs. The user still sees the full response in the
+                // bubble via the onError callback below.
+                console.log("[openrouter] HTTP " + xhr.status + " (body redacted, len=" + xhr.responseText.length + ")");
                 finish(true, "HTTP " + xhr.status + ": " + xhr.responseText);
                 return;
             }
@@ -173,7 +185,9 @@ function chatOnce(opts, messages, callbacks) {
     var url = (opts.baseUrl || "https://openrouter.ai/api/v1").replace(/\/+$/, "") + "/chat/completions";
     console.log("[openrouter] one-shot POST " + url + " model=" + opts.model + " msgCount=" + messages.length);
     xhr.open("POST", url);
-    xhr.setRequestHeader("Authorization", "Bearer " + opts.apiKey);
+    if (opts.apiKey && opts.apiKey.length > 0) {
+        xhr.setRequestHeader("Authorization", "Bearer " + opts.apiKey);
+    }
     xhr.setRequestHeader("Content-Type", "application/json");
     if (opts.appTitle) xhr.setRequestHeader("X-Title", opts.appTitle);
 

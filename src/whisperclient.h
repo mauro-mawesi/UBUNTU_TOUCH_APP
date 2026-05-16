@@ -3,6 +3,9 @@
 
 #include <QObject>
 #include <QNetworkAccessManager>
+#include <QPointer>
+
+class QNetworkReply;
 
 class WhisperClient : public QObject {
     Q_OBJECT
@@ -10,11 +13,14 @@ class WhisperClient : public QObject {
 
 public:
     explicit WhisperClient(QObject *parent = nullptr);
+    ~WhisperClient() override;
     bool busy() const { return m_busy; }
 
 public slots:
     void transcribe(const QString &serverUrl, const QString &filePath,
                     const QString &language, const QString &model);
+    // Abort an in-flight transcription. Safe to call when idle.
+    void cancel();
 
 signals:
     void transcribed(const QString &text);
@@ -24,6 +30,7 @@ signals:
 private:
     void setBusy(bool b);
     QNetworkAccessManager m_nam;
+    QPointer<QNetworkReply> m_currentReply;
     bool m_busy = false;
 };
 

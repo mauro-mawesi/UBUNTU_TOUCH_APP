@@ -11,6 +11,12 @@ Page {
     property var i18nApp
     property var appTheme
     property var themeTransition: null
+    // When true, theme/accent changes apply directly instead of running the
+    // capture+circle-reveal animation. Avoids freezing a snapshot of an
+    // in-flight chat bubble (visual jank + brief privacy concern) and
+    // smooths out the experience when the user fidgets with settings while
+    // a response streams.
+    property bool chatBusy: false
 
     // Emitted whenever topics are created/edited/deleted so ChatPage refreshes.
     signal topicsModified()
@@ -136,7 +142,7 @@ Page {
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
                                     if (appSettings.themeMode === modelData.code) return;
-                                    if (page.themeTransition) {
+                                    if (page.themeTransition && !page.chatBusy) {
                                         var p = mapToItem(null, mouse.x, mouse.y);
                                         page.themeTransition.run(p.x, p.y, modelData.code);
                                     } else {
@@ -324,7 +330,10 @@ Page {
                     Layout.fillWidth: true
                     appTheme: page.appTheme
                     text: appSettings.openrouterUrl
-                    onTextChanged: appSettings.openrouterUrl = text
+                    // Only accept blanks or strings that start with http(s) —
+                    // prevents an accidental "evil.com" paste from sending the
+                    // API key to an arbitrary host on the next request.
+                    onTextChanged: if (text.length === 0 || /^https?:\/\//i.test(text)) appSettings.openrouterUrl = text;
                 }
 
                 RowLayout {
@@ -372,7 +381,7 @@ Page {
                     Layout.fillWidth: true
                     appTheme: page.appTheme
                     text: appSettings.chromaUrl
-                    onTextChanged: appSettings.chromaUrl = text
+                    onTextChanged: if (text.length === 0 || /^https?:\/\//i.test(text)) appSettings.chromaUrl = text;
                 }
 
                 FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Tenant" }
@@ -427,7 +436,7 @@ Page {
                     Layout.fillWidth: true
                     appTheme: page.appTheme
                     text: appSettings.ollamaUrl
-                    onTextChanged: appSettings.ollamaUrl = text
+                    onTextChanged: if (text.length === 0 || /^https?:\/\//i.test(text)) appSettings.ollamaUrl = text;
                 }
 
                 FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Embedding model" }
@@ -614,7 +623,7 @@ Page {
                     Layout.fillWidth: true
                     appTheme: page.appTheme
                     text: appSettings.ttsUrl
-                    onTextChanged: appSettings.ttsUrl = text
+                    onTextChanged: if (text.length === 0 || /^https?:\/\//i.test(text)) appSettings.ttsUrl = text;
                 }
 
                 FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Voice (empty = auto by language)" }
@@ -686,14 +695,34 @@ Page {
                     try { xhr.open(method, url); }
                     catch (e) { onDone(false, "bad URL"); return; }
                     if (authHeader) xhr.setRequestHeader("Authorization", authHeader);
+
+                    // Bounded watchdog: if the service doesn't answer in 5s we
+                    // surface "timeout" instead of leaving the row spinning.
+                    // Settled-flag prevents double-settle on race with abort.
+                    var settled = false;
+                    var watchdog = Qt.createQmlObject(
+                        'import QtQuick 2.7; Timer { interval: 5000; repeat: false }',
+                        connectivityCard);
+                    function settle(ok, detail) {
+                        if (settled) return;
+                        settled = true;
+                        if (watchdog) { watchdog.stop(); watchdog.destroy(); watchdog = null; }
+                        onDone(ok, detail);
+                    }
+                    watchdog.triggered.connect(function() {
+                        try { xhr.abort(); } catch (e) {}
+                        settle(false, "timeout");
+                    });
+                    watchdog.start();
+
                     xhr.onreadystatechange = function() {
                         if (xhr.readyState !== XMLHttpRequest.DONE) return;
                         var dt = Date.now() - t0;
-                        if (xhr.status === 0) { onDone(false, "unreachable"); return; }
-                        if (xhr.status >= 200 && xhr.status < 300) { onDone(true, dt + "ms"); return; }
-                        onDone(false, "HTTP " + xhr.status);
+                        if (xhr.status === 0) { settle(false, "unreachable"); return; }
+                        if (xhr.status >= 200 && xhr.status < 300) { settle(true, dt + "ms"); return; }
+                        settle(false, "HTTP " + xhr.status);
                     };
-                    try { xhr.send(); } catch (e) { onDone(false, "send error"); }
+                    try { xhr.send(); } catch (e) { settle(false, "send error"); }
                 }
 
                 function testAll() {

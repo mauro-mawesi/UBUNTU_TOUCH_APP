@@ -14,10 +14,22 @@
 
 WhisperClient::WhisperClient(QObject *parent) : QObject(parent) {}
 
+WhisperClient::~WhisperClient() {
+    // App shutdown shouldn't wait for an in-flight transcription. cancel() is
+    // safe when idle (m_currentReply is QPointer and may already be null).
+    cancel();
+}
+
 void WhisperClient::setBusy(bool b) {
     if (m_busy == b) return;
     m_busy = b;
     emit busyChanged();
+}
+
+void WhisperClient::cancel() {
+    if (m_currentReply) {
+        m_currentReply->abort();
+    }
 }
 
 void WhisperClient::transcribe(const QString &serverUrl, const QString &filePath,
@@ -76,13 +88,22 @@ void WhisperClient::transcribe(const QString &serverUrl, const QString &filePath
     QNetworkRequest req(url);
     QNetworkReply *reply = m_nam.post(req, multiPart);
     multiPart->setParent(reply);
+    m_currentReply = reply;
     setBusy(true);
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, filePath]() {
         setBusy(false);
+        if (reply->error() == QNetworkReply::OperationCanceledError) {
+            qDebug() << "[whisper] cancelled";
+            if (!filePath.isEmpty()) QFile::remove(filePath);
+            reply->deleteLater();
+            return;
+        }
         if (reply->error() != QNetworkReply::NoError) {
             const QString msg = QStringLiteral("HTTP error: ") + reply->errorString();
-            qWarning() << "[whisper]" << msg << "body:" << reply->readAll().left(500);
+            // Drop response body — Whisper error payloads sometimes echo
+            // diagnostics. errorString() already carries the salient cause.
+            qWarning() << "[whisper]" << msg << "(body redacted)";
             emit errorOccurred(msg);
         } else {
             const QByteArray data = reply->readAll();
@@ -96,6 +117,12 @@ void WhisperClient::transcribe(const QString &serverUrl, const QString &filePath
                 emit transcribed(text);
             }
         }
+        // The recording is single-use: once Whisper has accepted (or rejected)
+        // it, the local file is no longer needed. Keeping it around accumulates
+        // personal voice data in the app cache. Unlinking is safe even though
+        // the QFile* is still open (parented to multiPart → reply); on Linux
+        // the inode survives until the descriptor closes during deleteLater().
+        if (!filePath.isEmpty()) QFile::remove(filePath);
         reply->deleteLater();
     });
 }

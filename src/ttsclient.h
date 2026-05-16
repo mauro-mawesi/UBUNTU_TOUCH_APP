@@ -13,6 +13,7 @@ class TtsClient : public QObject {
 
 public:
     explicit TtsClient(QObject *parent = nullptr);
+    ~TtsClient() override;
     bool busy() const { return m_busy; }
 
 public slots:
