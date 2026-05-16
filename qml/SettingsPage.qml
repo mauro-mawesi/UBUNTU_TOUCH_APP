@@ -62,11 +62,31 @@ Page {
     }
 
     header: PageHeader {
-        title: i18nApp.tr("Settings")
         StyleHints {
             backgroundColor: "transparent"
             foregroundColor: appTheme.text
             dividerColor: appTheme.border
+        }
+        contents: Item {
+            anchors.fill: parent
+            Row {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: appTheme.space2
+                BrandMark {
+                    anchors.verticalCenter: parent.verticalCenter
+                    appTheme: page.appTheme
+                    size: units.gu(2.8)
+                }
+                Label {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: i18nApp.tr("Settings")
+                    color: appTheme.text
+                    textSize: Label.Large
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+                }
+            }
         }
     }
 

@@ -148,11 +148,34 @@ Page {
     }
 
     header: PageHeader {
-        title: i18nApp.tr("RAG Assistant")
         StyleHints {
             backgroundColor: "transparent"
             foregroundColor: appTheme.text
             dividerColor: appTheme.border
+        }
+        // Custom title slot so we can place the ✦ glyph next to the page
+        // title — same brand we already use in splash + sidebar + assistant
+        // avatar. PageHeader hides the `title:` string when `contents` is set.
+        contents: Item {
+            anchors.fill: parent
+            Row {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: appTheme.space2
+                BrandMark {
+                    anchors.verticalCenter: parent.verticalCenter
+                    appTheme: page.appTheme
+                    size: units.gu(2.8)
+                }
+                Label {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: i18nApp.tr("RAG Assistant")
+                    color: appTheme.text
+                    textSize: Label.Large
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+                }
+            }
         }
         leadingActionBar.actions: [
             Action {

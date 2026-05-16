@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ragassistant.ragassistant\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-16 19:20+0000\n"
+"POT-Creation-Date: 2026-05-16 19:27+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,19 +17,19 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../qml/BrainPage.qml:100 ../qml/SettingsPage.qml:788
+#: ../qml/BrainPage.qml:100 ../qml/SettingsPage.qml:808
 msgid "Vector store (Chroma)"
 msgstr ""
 
-#: ../qml/BrainPage.qml:106 ../qml/SettingsPage.qml:791
+#: ../qml/BrainPage.qml:106 ../qml/SettingsPage.qml:811
 msgid "Embeddings (Ollama)"
 msgstr ""
 
-#: ../qml/BrainPage.qml:112 ../qml/SettingsPage.qml:794
+#: ../qml/BrainPage.qml:112 ../qml/SettingsPage.qml:814
 msgid "Language model"
 msgstr ""
 
-#: ../qml/BrainPage.qml:117 ../qml/SettingsPage.qml:747
+#: ../qml/BrainPage.qml:117 ../qml/SettingsPage.qml:767
 msgid "No API key"
 msgstr ""
 
@@ -41,73 +41,73 @@ msgstr ""
 msgid "Text to speech (Kokoro)"
 msgstr ""
 
-#: ../qml/BrainPage.qml:165 ../qml/SettingsPage.qml:686
+#: ../qml/BrainPage.qml:165 ../qml/SettingsPage.qml:706
 msgid "OK"
 msgstr ""
 
-#: ../qml/BrainPage.qml:166 ../qml/BrainPage.qml:237 ../qml/BrainPage.qml:396
-#: ../qml/SettingsPage.qml:687
+#: ../qml/BrainPage.qml:166 ../qml/BrainPage.qml:257 ../qml/BrainPage.qml:416
+#: ../qml/SettingsPage.qml:707
 msgid "Failed"
 msgstr ""
 
-#: ../qml/BrainPage.qml:167 ../qml/BrainPage.qml:239 ../qml/BrainPage.qml:268
-#: ../qml/BrainPage.qml:398
+#: ../qml/BrainPage.qml:167 ../qml/BrainPage.qml:259 ../qml/BrainPage.qml:288
+#: ../qml/BrainPage.qml:418
 msgid "Loading…"
 msgstr ""
 
-#: ../qml/BrainPage.qml:186 ../qml/ChatPage.qml:173
+#: ../qml/BrainPage.qml:204 ../qml/ChatPage.qml:196
 msgid "Brain metrics"
 msgstr ""
 
-#: ../qml/BrainPage.qml:195
+#: ../qml/BrainPage.qml:215
 msgid "Refresh"
 msgstr ""
 
-#: ../qml/BrainPage.qml:240
+#: ../qml/BrainPage.qml:260
 msgid "%1 collections"
 msgstr ""
 
-#: ../qml/BrainPage.qml:266
+#: ../qml/BrainPage.qml:286
 msgid "%1 docs"
 msgstr ""
 
-#: ../qml/BrainPage.qml:270
+#: ../qml/BrainPage.qml:290
 msgid "count unavailable"
 msgstr ""
 
-#: ../qml/BrainPage.qml:273
+#: ../qml/BrainPage.qml:293
 msgid "dim %1"
 msgstr ""
 
-#: ../qml/BrainPage.qml:302 ../qml/ChatPage.qml:160
+#: ../qml/BrainPage.qml:322 ../qml/ChatPage.qml:183
 msgid "Conversations"
 msgstr ""
 
-#: ../qml/BrainPage.qml:304
+#: ../qml/BrainPage.qml:324
 msgid "Messages"
 msgstr ""
 
-#: ../qml/BrainPage.qml:306
+#: ../qml/BrainPage.qml:326
 msgid "Topics"
 msgstr ""
 
-#: ../qml/BrainPage.qml:308
+#: ../qml/BrainPage.qml:328
 msgid "User messages"
 msgstr ""
 
-#: ../qml/BrainPage.qml:310
+#: ../qml/BrainPage.qml:330
 msgid "Assistant messages"
 msgstr ""
 
-#: ../qml/BrainPage.qml:312
+#: ../qml/BrainPage.qml:332
 msgid "First message"
 msgstr ""
 
-#: ../qml/BrainPage.qml:314
+#: ../qml/BrainPage.qml:334
 msgid "Last message"
 msgstr ""
 
-#: ../qml/BrainPage.qml:399
+#: ../qml/BrainPage.qml:419
 msgid "%1 models"
 msgstr ""
 
@@ -115,208 +115,208 @@ msgstr ""
 msgid "General"
 msgstr ""
 
-#: ../qml/ChatPage.qml:151 ../qml/SplashScreen.qml:133
+#: ../qml/ChatPage.qml:172 ../qml/SplashScreen.qml:133
 #: ragassistant.desktop.in.h:1
 msgid "RAG Assistant"
 msgstr ""
 
-#: ../qml/ChatPage.qml:167 ../qml/components/ConversationList.qml:127
+#: ../qml/ChatPage.qml:190 ../qml/components/ConversationList.qml:127
 msgid "New chat"
 msgstr ""
 
-#: ../qml/ChatPage.qml:178 ../qml/SettingsPage.qml:65
+#: ../qml/ChatPage.qml:201 ../qml/SettingsPage.qml:83
 msgid "Settings"
 msgstr ""
 
-#: ../qml/ChatPage.qml:395
+#: ../qml/ChatPage.qml:418
 msgid "Couldn't save the conversation locally (storage is read-only)."
 msgstr ""
 
-#: ../qml/ChatPage.qml:399
+#: ../qml/ChatPage.qml:422
 msgid "Local storage isn't available right now."
 msgstr ""
 
-#: ../qml/ChatPage.qml:402
+#: ../qml/ChatPage.qml:425
 msgid "A field expected by the database was empty."
 msgstr ""
 
-#: ../qml/ChatPage.qml:406
+#: ../qml/ChatPage.qml:429
 msgid "Local storage is busy. Retry in a moment."
 msgstr ""
 
-#: ../qml/ChatPage.qml:408
+#: ../qml/ChatPage.qml:431
 msgid "Couldn't save part of the conversation."
 msgstr ""
 
-#: ../qml/ChatPage.qml:581
+#: ../qml/ChatPage.qml:604
 msgid "Set your OpenRouter API Key in Settings."
 msgstr ""
 
-#: ../qml/ChatPage.qml:702
+#: ../qml/ChatPage.qml:725
 msgid "Auto"
 msgstr ""
 
-#: ../qml/ChatPage.qml:791
+#: ../qml/ChatPage.qml:814
 msgid "What would you like to know today?"
 msgstr ""
 
-#: ../qml/ChatPage.qml:802
+#: ../qml/ChatPage.qml:825
 msgid "Ask anything about your documents"
 msgstr ""
 
-#: ../qml/ChatPage.qml:820
+#: ../qml/ChatPage.qml:843
 msgid "Summarize the working hours policy"
 msgstr ""
 
-#: ../qml/ChatPage.qml:821
+#: ../qml/ChatPage.qml:844
 msgid "From the internal regulations"
 msgstr ""
 
-#: ../qml/ChatPage.qml:827
+#: ../qml/ChatPage.qml:850
 msgid "What are the security and JWT requirements?"
 msgstr ""
 
-#: ../qml/ChatPage.qml:828
+#: ../qml/ChatPage.qml:851
 msgid "From operations and security docs"
 msgstr ""
 
-#: ../qml/ChatPage.qml:835
+#: ../qml/ChatPage.qml:858
 msgid "List the vacation rules"
 msgstr ""
 
-#: ../qml/ChatPage.qml:836
+#: ../qml/ChatPage.qml:859
 msgid "From HR documents"
 msgstr ""
 
-#: ../qml/ChatPage.qml:934
+#: ../qml/ChatPage.qml:957
 msgid "Jump to latest"
 msgstr ""
 
-#: ../qml/ChatPage.qml:981
+#: ../qml/ChatPage.qml:1004
 msgid "Listening…"
 msgstr ""
 
-#: ../qml/ChatPage.qml:983
+#: ../qml/ChatPage.qml:1006
 msgid "Transcribing…"
 msgstr ""
 
-#: ../qml/ChatPage.qml:984
+#: ../qml/ChatPage.qml:1007
 msgid "Ask about your documents…"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1018
+#: ../qml/ChatPage.qml:1041
 msgid "Attach a file"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1019
+#: ../qml/ChatPage.qml:1042
 msgid "Coming soon"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1089
+#: ../qml/ChatPage.qml:1112
 msgid "Stop recording"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1090
+#: ../qml/ChatPage.qml:1113
 msgid "Voice input"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1098
+#: ../qml/ChatPage.qml:1121
 msgid "Stop"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1099
+#: ../qml/ChatPage.qml:1122
 msgid "Send"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1171
+#: ../qml/ChatPage.qml:1194
 msgid "Enter to send · Shift+Enter for newline"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1245
+#: ../qml/ChatPage.qml:1268
 msgid "Rename conversation"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1246
+#: ../qml/ChatPage.qml:1269
 msgid "Title"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1255 ../qml/ChatPage.qml:1286
-#: ../qml/SettingsPage.qml:921 ../qml/SettingsPage.qml:961
+#: ../qml/ChatPage.qml:1278 ../qml/ChatPage.qml:1309
+#: ../qml/SettingsPage.qml:941 ../qml/SettingsPage.qml:981
 msgid "Cancel"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1259 ../qml/SettingsPage.qml:925
+#: ../qml/ChatPage.qml:1282 ../qml/SettingsPage.qml:945
 msgid "Save"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1280
+#: ../qml/ChatPage.qml:1303
 msgid "Delete conversation"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1281
+#: ../qml/ChatPage.qml:1304
 msgid "Delete \"%1\"? This cannot be undone."
 msgstr ""
 
-#: ../qml/ChatPage.qml:1281 ../qml/SettingsPage.qml:500
+#: ../qml/ChatPage.qml:1304 ../qml/SettingsPage.qml:520
 #: ../qml/components/ConversationList.qml:295
 msgid "Untitled"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1290 ../qml/SettingsPage.qml:965
+#: ../qml/ChatPage.qml:1313 ../qml/SettingsPage.qml:985
 msgid "Delete"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1324
+#: ../qml/ChatPage.qml:1347
 msgid "Choose topic"
 msgstr ""
 
-#: ../qml/ChatPage.qml:1358
+#: ../qml/ChatPage.qml:1381
 msgid "Auto (classify per query)"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:349
+#: ../qml/SettingsPage.qml:369
 msgid "Enable tools (function calling)"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:355
+#: ../qml/SettingsPage.qml:375
 msgid ""
 "Lets the model call built-in tools like calculator or current time. Requires "
 "a tool-capable model."
 msgstr ""
 
-#: ../qml/SettingsPage.qml:568
+#: ../qml/SettingsPage.qml:588
 msgid "No topics yet"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:593
+#: ../qml/SettingsPage.qml:613
 msgid "Add topic"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:645
+#: ../qml/SettingsPage.qml:665
 msgid "Auto-speak assistant replies"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:688
+#: ../qml/SettingsPage.qml:708
 msgid "Testing…"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:769
+#: ../qml/SettingsPage.qml:789
 msgid "Test connection"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:837
+#: ../qml/SettingsPage.qml:857
 msgid "Edit topic"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:837
+#: ../qml/SettingsPage.qml:857
 msgid "New topic"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:954
+#: ../qml/SettingsPage.qml:974
 msgid "Delete topic"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:955
+#: ../qml/SettingsPage.qml:975
 msgid "Delete topic \"%1\"? Conversations using it will become Auto."
 msgstr ""
 
