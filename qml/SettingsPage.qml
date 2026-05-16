@@ -96,7 +96,8 @@ Page {
                     Layout.fillWidth: true
                     Layout.topMargin: units.gu(0.5)
                     appTheme: page.appTheme
-                    text: i18nApp.tr("Theme")
+                    i18nApp: page.i18nApp
+                    textKey: "Theme"
                 }
                 RowLayout {
                     Layout.fillWidth: true
@@ -151,7 +152,8 @@ Page {
                     Layout.fillWidth: true
                     Layout.topMargin: units.gu(0.8)
                     appTheme: page.appTheme
-                    text: i18nApp.tr("Accent color")
+                    i18nApp: page.i18nApp
+                    textKey: "Accent color"
                 }
                 Flow {
                     Layout.fillWidth: true
@@ -201,7 +203,8 @@ Page {
                     Layout.fillWidth: true
                     Layout.topMargin: units.gu(0.5)
                     appTheme: page.appTheme
-                    text: i18nApp.tr("Language")
+                    i18nApp: page.i18nApp
+                    textKey: "Language"
                 }
 
                 RowLayout {
