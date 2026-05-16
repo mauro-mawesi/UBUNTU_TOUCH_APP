@@ -94,6 +94,9 @@ Types registered in main.cpp under `Ragassistant.Audio 1.0`:
 11. **Builder is `cmake`** (not `pure-qml-cmake`) because we have C++. `clickable.yaml` and `ragassistant.desktop.in` reflect that — Exec is the binary name, not `qmlscene`.
 12. **apparmor policy groups**: `networking`, `audio`, `microphone`. Missing any one breaks the feature silently on device.
 13. **`Store.addMessage` etc. are wrapped in try/catch** in ChatPage so a DB hiccup never blocks the LLM call. Persistence is best-effort; chat flow is the contract.
+14. **QML's `Qt.LocalStorage` parameter binding turns JS `""` into SQL `NULL`.** A column declared `TEXT NOT NULL DEFAULT ''` will reject the bound `""` because the NOT NULL check happens before DEFAULT kicks in. Either drop NOT NULL on optional text columns or omit them from the INSERT to let DEFAULT apply. Reads should coerce NULL back to `""`.
+15. **`property var foo` auto-generates a `fooChanged()` signal.** Declaring your own `signal fooChanged()` triggers `Duplicate signal name: invalid override of property change signal or superclass signal`. Pick a different verb (e.g. `fooModified`) or drop the explicit signal and listen via the property-change one.
+16. **`Component.onCompleted` order between sibling Items is not strictly guaranteed.** If page A calls `Store.init()` and sibling page B reads from the DB on its own `onCompleted`, B can fire first and hit "no such table". Make `init` idempotent and call it defensively from any page that touches the DB at startup.
 
 ## Roadmap — agreed direction
 

@@ -1,13 +1,47 @@
 import QtQuick 2.7
 import Lomiri.Components 1.3
+import Lomiri.Components.Popups 1.3
 import QtQuick.Layouts 1.3
 import "components"
+import "js/Store.js" as Store
 
 Page {
     id: page
     property var appSettings
     property var i18nApp
     property var appTheme
+
+    // Emitted whenever topics are created/edited/deleted so ChatPage refreshes.
+    signal topicsModified()
+
+    property var topics: []
+
+    function refreshTopics() {
+        topics = Store.listTopics();
+    }
+
+    Component.onCompleted: {
+        // Defensive: Component.onCompleted ordering between sibling Items is
+        // not guaranteed, so we re-init here too. Store.init is idempotent.
+        Store.init(appSettings.collectionId, i18nApp.tr("General"));
+        refreshTopics();
+    }
+
+    function topicColor(topic) {
+        if (!topic) return appTheme.textMuted;
+        var presets = appTheme.presets || [];
+        var idx = topic.colorPresetIndex || 0;
+        if (idx >= 0 && idx < presets.length) return presets[idx].primary;
+        return appTheme.primary;
+    }
+
+    function openTopicEditor(topic) {
+        PopupUtils.open(topicEditor, page, { editing: topic || null });
+    }
+
+    function openTopicDelete(topic) {
+        PopupUtils.open(topicDeleteDialog, page, { topicRef: topic });
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -303,6 +337,162 @@ Page {
                 }
             }
 
+            // ---------- Topics ----------
+            Card {
+                Layout.fillWidth: true
+                appTheme: page.appTheme
+                sectionTitle: i18nApp.tr("Topics")
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    Layout.topMargin: units.gu(0.5)
+                    spacing: units.gu(0.4)
+
+                    Repeater {
+                        model: page.topics
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: units.gu(5)
+                            radius: units.gu(0.8)
+                            color: topicMouse.containsMouse ? appTheme.surfaceHover : appTheme.surfaceAlt
+                            border.color: appTheme.border
+                            border.width: 1
+                            Behavior on color { ColorAnimation { duration: 100 } }
+
+                            RowLayout {
+                                anchors {
+                                    left: parent.left; right: parent.right
+                                    verticalCenter: parent.verticalCenter
+                                    leftMargin: units.gu(1)
+                                    rightMargin: units.gu(0.4)
+                                }
+                                spacing: units.gu(0.8)
+
+                                Rectangle {
+                                    Layout.preferredWidth: units.gu(1.4)
+                                    Layout.preferredHeight: units.gu(1.4)
+                                    Layout.alignment: Qt.AlignVCenter
+                                    radius: width / 2
+                                    color: page.topicColor(modelData)
+                                }
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    Layout.alignment: Qt.AlignVCenter
+                                    spacing: 0
+
+                                    Label {
+                                        Layout.fillWidth: true
+                                        text: modelData.name || i18nApp.tr("Untitled")
+                                        color: appTheme.text
+                                        textSize: Label.Small
+                                        font.bold: true
+                                        elide: Text.ElideRight
+                                    }
+                                    Label {
+                                        Layout.fillWidth: true
+                                        text: modelData.collectionId || ""
+                                        color: appTheme.textMuted
+                                        textSize: Label.XSmall
+                                        elide: Text.ElideMiddle
+                                        visible: text.length > 0
+                                    }
+                                }
+
+                                // Edit
+                                Rectangle {
+                                    Layout.preferredWidth: units.gu(3); Layout.preferredHeight: units.gu(3)
+                                    radius: width / 2
+                                    color: editMouse.containsMouse ? appTheme.surfaceHover : "transparent"
+                                    Icon {
+                                        anchors.centerIn: parent
+                                        width: units.gu(1.6); height: width
+                                        name: "edit"
+                                        color: appTheme.textSecondary
+                                    }
+                                    MouseArea {
+                                        id: editMouse
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: page.openTopicEditor(modelData)
+                                    }
+                                }
+                                // Delete
+                                Rectangle {
+                                    Layout.preferredWidth: units.gu(3); Layout.preferredHeight: units.gu(3)
+                                    radius: width / 2
+                                    color: delMouse.containsMouse ? appTheme.danger : "transparent"
+                                    Icon {
+                                        anchors.centerIn: parent
+                                        width: units.gu(1.6); height: width
+                                        name: "delete"
+                                        color: delMouse.containsMouse ? "white" : appTheme.textSecondary
+                                    }
+                                    MouseArea {
+                                        id: delMouse
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: page.openTopicDelete(modelData)
+                                    }
+                                }
+                            }
+
+                            MouseArea {
+                                id: topicMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                propagateComposedEvents: true
+                                onClicked: mouse.accepted = false
+                            }
+                        }
+                    }
+
+                    Label {
+                        Layout.fillWidth: true
+                        text: i18nApp.tr("No topics yet")
+                        color: appTheme.textMuted
+                        textSize: Label.Small
+                        horizontalAlignment: Text.AlignHCenter
+                        visible: page.topics.length === 0
+                    }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: units.gu(4.5)
+                        Layout.topMargin: units.gu(0.6)
+                        radius: units.gu(0.8)
+                        color: addTopicMouse.pressed ? appTheme.secondary
+                              : (addTopicMouse.containsMouse ? appTheme.surfaceHover : appTheme.primary)
+                        Behavior on color { ColorAnimation { duration: 120 } }
+
+                        RowLayout {
+                            anchors.centerIn: parent
+                            spacing: units.gu(0.6)
+                            Icon {
+                                Layout.preferredWidth: units.gu(1.8); Layout.preferredHeight: units.gu(1.8)
+                                name: "add"
+                                color: appTheme.textOnPrimary
+                            }
+                            Label {
+                                text: i18nApp.tr("Add topic")
+                                color: appTheme.textOnPrimary
+                                textSize: Label.Small
+                                font.bold: true
+                            }
+                        }
+                        MouseArea {
+                            id: addTopicMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: page.openTopicEditor(null)
+                        }
+                    }
+                }
+            }
+
             // ---------- Voice (TTS) ----------
             Card {
                 Layout.fillWidth: true
@@ -487,6 +677,155 @@ Page {
                             color: connectivityCard._statusColor(modelData.state)
                             textSize: Label.XSmall
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    // ---- topic editor dialog ----
+    Component {
+        id: topicEditor
+        Dialog {
+            id: dlg
+            property var editing: null   // null = create
+            property int colorIdx: editing ? (editing.colorPresetIndex || 0) : 0
+
+            title: editing ? i18nApp.tr("Edit topic") : i18nApp.tr("New topic")
+
+            Column {
+                width: parent ? parent.width : units.gu(38)
+                spacing: units.gu(0.4)
+
+                FieldLabel { width: parent.width; appTheme: page.appTheme; text: i18nApp.tr("Name") }
+                StyledField {
+                    id: nameField
+                    width: parent.width
+                    appTheme: page.appTheme
+                    text: dlg.editing ? dlg.editing.name : ""
+                }
+
+                Item { width: 1; height: units.gu(0.4) }
+
+                FieldLabel { width: parent.width; appTheme: page.appTheme; text: i18nApp.tr("Collection ID") }
+                StyledField {
+                    id: collectionField
+                    width: parent.width
+                    appTheme: page.appTheme
+                    text: dlg.editing ? dlg.editing.collectionId : ""
+                }
+
+                Item { width: 1; height: units.gu(0.4) }
+
+                FieldLabel { width: parent.width; appTheme: page.appTheme; text: i18nApp.tr("Color") }
+                Flow {
+                    width: parent.width
+                    spacing: units.gu(0.6)
+
+                    Repeater {
+                        model: appTheme.presets
+                        Rectangle {
+                            width: units.gu(3.6); height: units.gu(3.6)
+                            radius: width / 2
+                            gradient: Gradient {
+                                GradientStop { position: 0; color: modelData.primary }
+                                GradientStop { position: 1; color: modelData.secondary }
+                            }
+                            border.color: dlg.colorIdx === index ? appTheme.text : "transparent"
+                            border.width: 3
+                            Icon {
+                                visible: dlg.colorIdx === index
+                                anchors.centerIn: parent
+                                width: units.gu(1.6); height: width
+                                name: "ok"
+                                color: "white"
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: dlg.colorIdx = index
+                            }
+                        }
+                    }
+                }
+
+                Item { width: 1; height: units.gu(0.4) }
+
+                FieldLabel { width: parent.width; appTheme: page.appTheme; text: i18nApp.tr("System prompt addon (optional)") }
+                Rectangle {
+                    width: parent.width
+                    height: units.gu(9)
+                    radius: units.gu(0.8)
+                    color: appTheme.surfaceAlt
+                    border.color: addonInput.activeFocus ? appTheme.borderFocus : appTheme.border
+                    border.width: 1
+
+                    TextArea {
+                        id: addonInput
+                        anchors.fill: parent
+                        anchors.margins: units.gu(0.6)
+                        wrapMode: TextEdit.Wrap
+                        color: appTheme.text
+                        text: dlg.editing ? dlg.editing.systemPromptAddon : ""
+                    }
+                }
+
+                Item { width: 1; height: units.gu(0.6) }
+
+                Row {
+                    spacing: units.gu(1)
+                    Button {
+                        text: i18nApp.tr("Cancel")
+                        onClicked: PopupUtils.close(dlg)
+                    }
+                    Button {
+                        text: i18nApp.tr("Save")
+                        color: appTheme.primary
+                        onClicked: {
+                            var fields = {
+                                name: nameField.text.trim(),
+                                collectionId: collectionField.text.trim(),
+                                colorPresetIndex: dlg.colorIdx,
+                                icon: dlg.editing ? (dlg.editing.icon || "") : "",
+                                systemPromptAddon: addonInput.text
+                            };
+                            if (fields.name.length === 0) return;
+                            if (dlg.editing) Store.updateTopic(dlg.editing.id, fields);
+                            else Store.createTopic(fields);
+                            page.refreshTopics();
+                            page.topicsModified();
+                            PopupUtils.close(dlg);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // ---- topic delete dialog ----
+    Component {
+        id: topicDeleteDialog
+        Dialog {
+            id: dlg
+            property var topicRef: null
+            title: i18nApp.tr("Delete topic")
+            text: i18nApp.tr("Delete topic \"%1\"? Conversations using it will become Auto.")
+                  .replace("%1", topicRef ? topicRef.name : "")
+
+            Row {
+                spacing: units.gu(1)
+                Button {
+                    text: i18nApp.tr("Cancel")
+                    onClicked: PopupUtils.close(dlg)
+                }
+                Button {
+                    text: i18nApp.tr("Delete")
+                    color: appTheme.danger
+                    onClicked: {
+                        if (dlg.topicRef) Store.deleteTopic(dlg.topicRef.id);
+                        page.refreshTopics();
+                        page.topicsChanged();
+                        PopupUtils.close(dlg);
                     }
                 }
             }

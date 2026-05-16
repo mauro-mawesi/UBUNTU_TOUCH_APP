@@ -28,6 +28,42 @@ Page {
     readonly property bool wideMode: width >= units.gu(80)
     property bool sidebarOpen: false
 
+    // ---- topics ----
+    property var topics: []
+    property int currentTopicId: -1   // -1 = Auto
+
+    readonly property var currentTopic: {
+        if (currentTopicId <= 0) return null;
+        for (var i = 0; i < topics.length; i++) {
+            if (topics[i].id === currentTopicId) return topics[i];
+        }
+        return null;
+    }
+
+    function refreshTopics() {
+        topics = Store.listTopics();
+        // If the selected topic was deleted, fall back to Auto.
+        if (currentTopicId > 0 && !currentTopic) currentTopicId = -1;
+    }
+
+    function selectTopic(id) {
+        currentTopicId = (id && id > 0) ? id : -1;
+        if (currentConvId > 0) {
+            var coll = "";
+            if (currentTopic) coll = currentTopic.collectionId || "";
+            Store.setConversationTopic(currentConvId, currentTopicId, coll);
+            refreshConversations();
+        }
+    }
+
+    function topicColor(topic) {
+        if (!topic) return appTheme.textMuted;
+        var presets = appTheme.presets || [];
+        var idx = topic.colorPresetIndex || 0;
+        if (idx >= 0 && idx < presets.length) return presets[idx].primary;
+        return appTheme.primary;
+    }
+
     function refreshConversations() {
         conversations = Store.listConversations();
     }
@@ -50,6 +86,13 @@ Page {
                 history.push({ role: m.role, content: m.content });
             }
         }
+        // Restore the conversation's topic selection.
+        for (var k = 0; k < conversations.length; k++) {
+            if (conversations[k].id === id) {
+                currentTopicId = conversations[k].topicId > 0 ? conversations[k].topicId : -1;
+                break;
+            }
+        }
         if (!wideMode) sidebarOpen = false;
         // F9: switching conversations should always land at the tail.
         listView.stickToBottom = true;
@@ -60,22 +103,32 @@ Page {
         currentConvId = -1;
         messagesModel.clear();
         history = [];
+        // New chats inherit whatever topic is selected at that moment.
         if (!wideMode) sidebarOpen = false;
     }
 
     function ensureConvExists(seedText) {
         if (currentConvId > 0) return currentConvId;
-        var id = Store.createConversation(Store.deriveTitle(seedText), appSettings.collectionId);
+        var coll = currentTopic ? (currentTopic.collectionId || "") : (appSettings.collectionId || "");
+        var id = Store.createConversation(Store.deriveTitle(seedText), coll,
+                                          currentTopicId > 0 ? currentTopicId : null);
         currentConvId = id;
         return id;
     }
 
     Component.onCompleted: {
-        Store.init();
+        Store.init(appSettings.collectionId, i18nApp.tr("General"));
+        refreshTopics();
         refreshConversations();
         if (conversations.length > 0) {
             selectConversation(conversations[0].id);
         }
+    }
+
+    Connections {
+        target: settingsPage
+        ignoreUnknownSignals: true
+        onTopicsModified: refreshTopics()
     }
 
     // ---- background ----
@@ -243,14 +296,7 @@ Page {
         messagesModel.setProperty(messagesModel.count - 1, "phase", p || "");
     }
 
-    function sendQuery(text) {
-        var q = (text || "").trim();
-        if (q.length === 0 || busy) return;
-        if (!appSettings.apiKey || appSettings.apiKey.length === 0) {
-            appendMessage("system", i18nApp.tr("Set your OpenRouter API Key in Settings."), [], false);
-            return;
-        }
-
+    function _runAsk(q, topic) {
         var convId = -1;
         try { convId = ensureConvExists(q); }
         catch (e) { console.log("[chat] ensureConvExists failed: " + e); }
@@ -267,44 +313,40 @@ Page {
         appendMessage("assistant", "", [], true, "retrieving");
 
         input.text = "";
-        busy = true;
 
         var assistantText = "";
         var assistantSources = [];
 
+        var collectionId = topic ? (topic.collectionId || appSettings.collectionId)
+                                 : appSettings.collectionId;
+        var topicAddon = topic ? (topic.systemPromptAddon || "") : "";
+
         var settingsWithLang = {
             apiKey: appSettings.apiKey, model: appSettings.model, openrouterUrl: appSettings.openrouterUrl,
             chromaUrl: appSettings.chromaUrl, tenant: appSettings.tenant, database: appSettings.database,
-            collectionId: appSettings.collectionId, topK: appSettings.topK,
+            collectionId: collectionId, topK: appSettings.topK,
             ollamaUrl: appSettings.ollamaUrl, embedModel: appSettings.embedModel,
             language: i18nApp.language,
+            topicAddon: topicAddon,
             appTitle: "ragassistant"
         };
 
-        console.log("[chat] sendQuery convId=" + convId + " q=" + q.substring(0,40));
-        console.log("[chat] settings: chroma=" + settingsWithLang.chromaUrl
-                    + " collection=" + settingsWithLang.collectionId
-                    + " ollama=" + settingsWithLang.ollamaUrl
-                    + " model=" + settingsWithLang.model
-                    + " hasApiKey=" + (!!settingsWithLang.apiKey));
+        console.log("[chat] _runAsk convId=" + convId + " q=" + q.substring(0,40)
+                    + " topic=" + (topic ? topic.name + "(" + topic.id + ")" : "none")
+                    + " collection=" + collectionId);
 
         activeXhr = Rag.ask(settingsWithLang, history.slice(), q, {
             onSources: function(items) {
-                console.log("[chat] onSources items=" + (items ? items.length : 0));
                 assistantSources = items;
                 updateLastSources(items);
                 setLastPhase("thinking");
             },
             onDelta: function(t) {
-                if (assistantText.length === 0) {
-                    console.log("[chat] first delta arrived");
-                    setLastPhase("");
-                }
+                if (assistantText.length === 0) setLastPhase("");
                 assistantText += t;
                 updateLast(assistantText, true);
             },
             onDone: function(full) {
-                console.log("[chat] onDone len=" + (full ? full.length : 0));
                 var finalText = full.length > 0 ? full : assistantText;
                 updateLast(finalText, false);
                 history.push({ role: "user", content: q });
@@ -323,7 +365,7 @@ Page {
             onError: function(err) {
                 console.log("[chat] onError: " + err);
                 var prefix = assistantText.length > 0 ? assistantText + "\n\n" : "";
-                var finalText = prefix + "⚠ " + err;
+                var finalText = prefix + err;
                 updateLast(finalText, false);
                 if (streamingMsgId > 0) {
                     Store.updateMessage(streamingMsgId, finalText, assistantSources);
@@ -335,10 +377,145 @@ Page {
         });
     }
 
+    function sendQuery(text) {
+        var q = (text || "").trim();
+        if (q.length === 0 || busy) return;
+        if (!appSettings.apiKey || appSettings.apiKey.length === 0) {
+            appendMessage("system", i18nApp.tr("Set your OpenRouter API Key in Settings."), [], false);
+            return;
+        }
+
+        busy = true;
+
+        // Auto mode: classify first, then pin the conversation to the chosen
+        // topic and run the standard retrieve+answer flow.
+        if (currentTopicId <= 0 && topics.length > 1) {
+            // Briefly show the classifier phase on a placeholder bubble.
+            appendMessage("assistant", "", [], true, "classifying");
+            Rag.classifyTopic({
+                openrouterUrl: appSettings.openrouterUrl,
+                apiKey: appSettings.apiKey,
+                model: appSettings.model,
+                appTitle: "ragassistant"
+            }, topics, q, function(pickedId) {
+                // Drop the classifier placeholder bubble before _runAsk adds its own.
+                if (messagesModel.count > 0) {
+                    var lastIdx = messagesModel.count - 1;
+                    var last = messagesModel.get(lastIdx);
+                    if (last && last.phase === "classifying") messagesModel.remove(lastIdx);
+                }
+                var chosen = null;
+                if (pickedId > 0) {
+                    for (var i = 0; i < topics.length; i++) {
+                        if (topics[i].id === pickedId) { chosen = topics[i]; break; }
+                    }
+                }
+                if (chosen) {
+                    currentTopicId = chosen.id;
+                    // Pin to the conversation (creates it if needed first).
+                    if (currentConvId <= 0) {
+                        // Defer pinning until the conversation row exists.
+                    }
+                }
+                _runAsk(q, chosen);
+                if (chosen && currentConvId > 0) {
+                    Store.setConversationTopic(currentConvId, chosen.id,
+                                               chosen.collectionId || "");
+                }
+            });
+            return;
+        }
+
+        _runAsk(q, currentTopic);
+    }
+
+    // ---- topic subheader ----
+    Rectangle {
+        id: topicSubheader
+        anchors {
+            top: page.header.bottom
+            left: parent.left; right: parent.right
+        }
+        height: units.gu(4.2)
+        color: "transparent"
+        z: 1
+
+        Rectangle {
+            anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+            height: 1
+            color: appTheme.border
+            opacity: 0.5
+        }
+
+        Item {
+            anchors {
+                left: parent.left; right: parent.right
+                verticalCenter: parent.verticalCenter
+                leftMargin: units.gu(1.5)
+                rightMargin: units.gu(1.5)
+            }
+            height: parent.height
+
+            // Topic chip (clickable, opens picker)
+            Rectangle {
+                id: topicChip
+                anchors.verticalCenter: parent.verticalCenter
+                height: units.gu(3.2)
+                width: chipRow.implicitWidth + units.gu(1.6)
+                radius: height / 2
+                color: chipMouseArea.containsMouse ? appTheme.surfaceHover : appTheme.surfaceAlt
+                border.color: chipMouseArea.containsMouse ? appTheme.borderFocus : appTheme.border
+                border.width: 1
+                Behavior on color { ColorAnimation { duration: 120 } }
+
+                RowLayout {
+                    id: chipRow
+                    anchors {
+                        left: parent.left; verticalCenter: parent.verticalCenter
+                        leftMargin: units.gu(0.8)
+                    }
+                    spacing: units.gu(0.6)
+
+                    Rectangle {
+                        Layout.preferredWidth: units.gu(1.2)
+                        Layout.preferredHeight: units.gu(1.2)
+                        Layout.alignment: Qt.AlignVCenter
+                        radius: width / 2
+                        color: currentTopic ? topicColor(currentTopic) : "transparent"
+                        border.color: currentTopic ? "transparent" : appTheme.textMuted
+                        border.width: currentTopic ? 0 : 1
+                    }
+                    Label {
+                        Layout.alignment: Qt.AlignVCenter
+                        text: currentTopic ? currentTopic.name : i18nApp.tr("Auto")
+                        color: appTheme.text
+                        textSize: Label.Small
+                        font.bold: true
+                    }
+                    Icon {
+                        Layout.preferredWidth: units.gu(1.4)
+                        Layout.preferredHeight: units.gu(1.4)
+                        Layout.alignment: Qt.AlignVCenter
+                        name: "down"
+                        color: appTheme.textSecondary
+                    }
+                }
+
+                MouseArea {
+                    id: chipMouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: PopupUtils.open(topicPicker, topicChip)
+                }
+            }
+        }
+    }
+
     // ---- responsive layout ----
     RowLayout {
         anchors {
-            top: page.header.bottom
+            top: topicSubheader.bottom
             left: parent.left; right: parent.right; bottom: parent.bottom
         }
         spacing: 0
@@ -352,6 +529,7 @@ Page {
             appTheme: page.appTheme
             i18nApp: page.i18nApp
             conversations: page.conversations
+            topics: page.topics
             currentId: page.currentConvId
             onNewChatRequested: newConversation()
             onConversationSelected: selectConversation(id)
@@ -724,6 +902,7 @@ Page {
             appTheme: page.appTheme
             i18nApp: page.i18nApp
             conversations: page.conversations
+            topics: page.topics
             currentId: page.currentConvId
             onNewChatRequested: newConversation()
             onConversationSelected: selectConversation(id)
@@ -799,6 +978,142 @@ Page {
                         refreshConversations();
                         if (wasCurrent) newConversation();
                         PopupUtils.close(dlg);
+                    }
+                }
+            }
+        }
+    }
+
+    // ---- topic picker popover ----
+    Component {
+        id: topicPicker
+        Popover {
+            id: pop
+            contentWidth: units.gu(28)
+
+            Column {
+                anchors { left: parent.left; right: parent.right }
+                spacing: 0
+
+                // Header
+                Item {
+                    width: parent.width
+                    height: units.gu(4)
+                    Label {
+                        anchors {
+                            left: parent.left; verticalCenter: parent.verticalCenter
+                            leftMargin: units.gu(1.4)
+                        }
+                        text: i18nApp.tr("Choose topic")
+                        textSize: Label.Small
+                        color: appTheme.textSecondary
+                        font.bold: true
+                    }
+                }
+
+                Rectangle { width: parent.width; height: 1; color: appTheme.border; opacity: 0.5 }
+
+                // Auto row
+                Rectangle {
+                    width: parent.width
+                    height: units.gu(4.2)
+                    color: autoMouse.containsMouse ? appTheme.surfaceHover : "transparent"
+
+                    RowLayout {
+                        anchors {
+                            left: parent.left; right: parent.right
+                            verticalCenter: parent.verticalCenter
+                            leftMargin: units.gu(1.4)
+                            rightMargin: units.gu(1.4)
+                        }
+                        spacing: units.gu(0.8)
+
+                        Rectangle {
+                            Layout.preferredWidth: units.gu(1.2)
+                            Layout.preferredHeight: units.gu(1.2)
+                            radius: width / 2
+                            color: "transparent"
+                            border.color: appTheme.textMuted
+                            border.width: 1
+                        }
+                        Label {
+                            Layout.fillWidth: true
+                            text: i18nApp.tr("Auto (classify per query)")
+                            color: appTheme.text
+                            textSize: Label.Small
+                            font.bold: currentTopicId <= 0
+                        }
+                        Icon {
+                            visible: currentTopicId <= 0
+                            Layout.preferredWidth: units.gu(1.6)
+                            Layout.preferredHeight: units.gu(1.6)
+                            name: "ok"
+                            color: appTheme.primary
+                        }
+                    }
+                    MouseArea {
+                        id: autoMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            selectTopic(-1);
+                            PopupUtils.close(pop);
+                        }
+                    }
+                }
+
+                Rectangle { width: parent.width; height: 1; color: appTheme.border; opacity: 0.3 }
+
+                // Topic rows
+                Repeater {
+                    model: topics
+                    Rectangle {
+                        width: parent.width
+                        height: units.gu(4.2)
+                        color: rowMouse.containsMouse ? appTheme.surfaceHover : "transparent"
+
+                        RowLayout {
+                            anchors {
+                                left: parent.left; right: parent.right
+                                verticalCenter: parent.verticalCenter
+                                leftMargin: units.gu(1.4)
+                                rightMargin: units.gu(1.4)
+                            }
+                            spacing: units.gu(0.8)
+
+                            Rectangle {
+                                Layout.preferredWidth: units.gu(1.2)
+                                Layout.preferredHeight: units.gu(1.2)
+                                radius: width / 2
+                                color: topicColor(modelData)
+                            }
+                            Label {
+                                Layout.fillWidth: true
+                                text: modelData.name
+                                color: appTheme.text
+                                textSize: Label.Small
+                                font.bold: currentTopicId === modelData.id
+                                elide: Text.ElideRight
+                            }
+                            Icon {
+                                visible: currentTopicId === modelData.id
+                                Layout.preferredWidth: units.gu(1.6)
+                                Layout.preferredHeight: units.gu(1.6)
+                                name: "ok"
+                                color: appTheme.primary
+                            }
+                        }
+                        MouseArea {
+                            id: rowMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                selectTopic(modelData.id);
+                                PopupUtils.close(pop);
+                            }
+                        }
                     }
                 }
             }

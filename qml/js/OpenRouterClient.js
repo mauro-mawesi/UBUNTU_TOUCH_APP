@@ -122,3 +122,46 @@ function streamChat(opts, messages, callbacks) {
     xhr.send(JSON.stringify(body));
     return xhr;
 }
+
+// One-shot non-streaming completion. Used for short auxiliary calls like the
+// topic classifier where we don't need token-by-token rendering.
+// callbacks: onDone(text, usage), onError(msg)
+function chatOnce(opts, messages, callbacks) {
+    var xhr = new XMLHttpRequest();
+    var url = (opts.baseUrl || "https://openrouter.ai/api/v1").replace(/\/+$/, "") + "/chat/completions";
+    console.log("[openrouter] one-shot POST " + url + " model=" + opts.model + " msgCount=" + messages.length);
+    xhr.open("POST", url);
+    xhr.setRequestHeader("Authorization", "Bearer " + opts.apiKey);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    if (opts.appTitle) xhr.setRequestHeader("X-Title", opts.appTitle);
+
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState !== XMLHttpRequest.DONE) return;
+        if (xhr.status === 0) { if (callbacks.onError) callbacks.onError("network error"); return; }
+        if (xhr.status < 200 || xhr.status >= 300) {
+            if (callbacks.onError) callbacks.onError("HTTP " + xhr.status + ": " + xhr.responseText);
+            return;
+        }
+        try {
+            var obj = JSON.parse(xhr.responseText);
+            var text = "";
+            if (obj.choices && obj.choices[0] && obj.choices[0].message) {
+                text = obj.choices[0].message.content || "";
+            }
+            if (callbacks.onDone) callbacks.onDone(text, obj.usage || null);
+        } catch (e) {
+            if (callbacks.onError) callbacks.onError("parse error: " + e);
+        }
+    };
+
+    var body = {
+        model: opts.model,
+        messages: messages,
+        stream: false
+    };
+    if (opts.temperature !== undefined) body.temperature = opts.temperature;
+    if (opts.maxTokens) body.max_tokens = opts.maxTokens;
+
+    xhr.send(JSON.stringify(body));
+    return xhr;
+}

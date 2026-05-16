@@ -230,10 +230,14 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                 }
                 Label {
-                    visible: bubble.phase === "retrieving" || bubble.phase === "thinking"
+                    visible: bubble.phase === "retrieving"
+                             || bubble.phase === "thinking"
+                             || bubble.phase === "classifying"
                     text: bubble.phase === "retrieving"
                           ? i18nApp.tr("Searching context…")
-                          : i18nApp.tr("Thinking…")
+                          : (bubble.phase === "classifying"
+                             ? i18nApp.tr("Classifying topic…")
+                             : i18nApp.tr("Thinking…"))
                     color: appTheme.textSecondary
                     textSize: Label.XSmall
                     anchors.verticalCenter: parent.verticalCenter

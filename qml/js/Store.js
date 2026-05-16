@@ -10,7 +10,11 @@ function _db() {
     return LS.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESC, DB_SIZE);
 }
 
-function init() {
+// init(defaultCollectionId, defaultTopicName) — used to seed the first topic
+// on a fresh install so the multi-topic feature works transparently for users
+// coming from the single-collection era. defaultTopicName lets the caller pass
+// a translated name (e.g. i18nApp.tr("General")).
+function init(defaultCollectionId, defaultTopicName) {
     _db().transaction(function(tx) {
         tx.executeSql(
             "CREATE TABLE IF NOT EXISTS conversations (" +
@@ -32,6 +36,47 @@ function init() {
             ")"
         );
         tx.executeSql("CREATE INDEX IF NOT EXISTS idx_messages_conv ON messages(conversation_id, id)");
+
+        // icon and system_prompt_addon are nullable on purpose: QML's LocalStorage
+        // param binding turns JS "" into SQL NULL, which would clash with a
+        // NOT NULL constraint. Reads coerce NULL back to "".
+        tx.executeSql(
+            "CREATE TABLE IF NOT EXISTS topics (" +
+            "  id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "  name TEXT NOT NULL DEFAULT ''," +
+            "  collection_id TEXT NOT NULL DEFAULT ''," +
+            "  color_preset_index INTEGER NOT NULL DEFAULT 0," +
+            "  icon TEXT," +
+            "  system_prompt_addon TEXT," +
+            "  created_at INTEGER NOT NULL," +
+            "  updated_at INTEGER NOT NULL" +
+            ")"
+        );
+
+        // Add topic_id to conversations if missing (SQLite has no IF NOT EXISTS on ALTER).
+        try { tx.executeSql("ALTER TABLE conversations ADD COLUMN topic_id INTEGER"); }
+        catch (e) { /* already exists */ }
+    });
+
+    // Seed default topic + backfill — outside the schema tx because reads happen.
+    _db().transaction(function(tx) {
+        var rs = tx.executeSql("SELECT COUNT(*) AS n FROM topics");
+        var count = rs.rows.item(0).n;
+        if (count === 0) {
+            var now = Date.now();
+            var seedCollection = defaultCollectionId || "";
+            var seedName = defaultTopicName || "General";
+            // Skip icon + system_prompt_addon: QML's LocalStorage param binding
+            // turns "" into NULL, which conflicts with NOT NULL — let the
+            // schema DEFAULT '' kick in instead.
+            var r = tx.executeSql(
+                "INSERT INTO topics(name, collection_id, color_preset_index," +
+                " created_at, updated_at) VALUES (?,?,?,?,?)",
+                [seedName, seedCollection, 0, now, now]
+            );
+            var seedId = r.insertId;
+            tx.executeSql("UPDATE conversations SET topic_id = ? WHERE topic_id IS NULL", [seedId]);
+        }
     });
 }
 
@@ -39,7 +84,7 @@ function listConversations() {
     var rows = [];
     _db().readTransaction(function(tx) {
         var rs = tx.executeSql(
-            "SELECT c.id, c.title, c.collection_id, c.created_at, c.updated_at," +
+            "SELECT c.id, c.title, c.collection_id, c.topic_id, c.created_at, c.updated_at," +
             " (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.id) AS message_count," +
             " (SELECT content FROM messages m WHERE m.conversation_id = c.id ORDER BY m.id DESC LIMIT 1) AS last_message" +
             " FROM conversations c ORDER BY c.updated_at DESC"
@@ -50,6 +95,7 @@ function listConversations() {
                 id: r.id,
                 title: r.title,
                 collectionId: r.collection_id,
+                topicId: (r.topic_id === null || r.topic_id === undefined) ? -1 : r.topic_id,
                 createdAt: r.created_at,
                 updatedAt: r.updated_at,
                 messageCount: r.message_count,
@@ -60,17 +106,26 @@ function listConversations() {
     return rows;
 }
 
-function createConversation(title, collectionId) {
+function createConversation(title, collectionId, topicId) {
     var id = -1;
     var now = Date.now();
     _db().transaction(function(tx) {
         var r = tx.executeSql(
-            "INSERT INTO conversations(title, collection_id, created_at, updated_at) VALUES (?,?,?,?)",
-            [title || "", collectionId || "", now, now]
+            "INSERT INTO conversations(title, collection_id, topic_id, created_at, updated_at) VALUES (?,?,?,?,?)",
+            [title || "", collectionId || "", (topicId && topicId > 0) ? topicId : null, now, now]
         );
         id = r.insertId;
     });
     return id;
+}
+
+function setConversationTopic(convId, topicId, collectionId) {
+    _db().transaction(function(tx) {
+        tx.executeSql(
+            "UPDATE conversations SET topic_id = ?, collection_id = ?, updated_at = ? WHERE id = ?",
+            [(topicId && topicId > 0) ? topicId : null, collectionId || "", Date.now(), convId]
+        );
+    });
 }
 
 function renameConversation(id, title) {
@@ -159,4 +214,87 @@ function deriveTitle(text) {
     var t = (text || "").replace(/\s+/g, " ").trim();
     if (t.length > 60) t = t.substring(0, 57) + "…";
     return t || "Untitled";
+}
+
+// ---------------- Topics ----------------
+
+function _rowToTopic(r) {
+    return {
+        id: r.id,
+        name: r.name,
+        collectionId: r.collection_id,
+        colorPresetIndex: r.color_preset_index,
+        icon: r.icon || "",
+        systemPromptAddon: r.system_prompt_addon || "",
+        createdAt: r.created_at,
+        updatedAt: r.updated_at
+    };
+}
+
+function listTopics() {
+    var rows = [];
+    _db().readTransaction(function(tx) {
+        var rs = tx.executeSql(
+            "SELECT id, name, collection_id, color_preset_index, icon," +
+            " system_prompt_addon, created_at, updated_at" +
+            " FROM topics ORDER BY id ASC"
+        );
+        for (var i = 0; i < rs.rows.length; i++) rows.push(_rowToTopic(rs.rows.item(i)));
+    });
+    return rows;
+}
+
+function getTopic(id) {
+    var out = null;
+    _db().readTransaction(function(tx) {
+        var rs = tx.executeSql(
+            "SELECT id, name, collection_id, color_preset_index, icon," +
+            " system_prompt_addon, created_at, updated_at" +
+            " FROM topics WHERE id = ?", [id]
+        );
+        if (rs.rows.length > 0) out = _rowToTopic(rs.rows.item(0));
+    });
+    return out;
+}
+
+function createTopic(fields) {
+    var id = -1;
+    var now = Date.now();
+    _db().transaction(function(tx) {
+        var r = tx.executeSql(
+            "INSERT INTO topics(name, collection_id, color_preset_index, icon," +
+            " system_prompt_addon, created_at, updated_at) VALUES (?,?,?,?,?,?,?)",
+            [fields.name || "",
+             fields.collectionId || "",
+             (fields.colorPresetIndex >= 0) ? fields.colorPresetIndex : 0,
+             fields.icon || "",
+             fields.systemPromptAddon || "",
+             now, now]
+        );
+        id = r.insertId;
+    });
+    return id;
+}
+
+function updateTopic(id, fields) {
+    _db().transaction(function(tx) {
+        tx.executeSql(
+            "UPDATE topics SET name = ?, collection_id = ?, color_preset_index = ?," +
+            " icon = ?, system_prompt_addon = ?, updated_at = ? WHERE id = ?",
+            [fields.name || "",
+             fields.collectionId || "",
+             (fields.colorPresetIndex >= 0) ? fields.colorPresetIndex : 0,
+             fields.icon || "",
+             fields.systemPromptAddon || "",
+             Date.now(), id]
+        );
+    });
+}
+
+function deleteTopic(id) {
+    // Detach any conversations pinned to this topic; they become "Auto" again.
+    _db().transaction(function(tx) {
+        tx.executeSql("UPDATE conversations SET topic_id = NULL WHERE topic_id = ?", [id]);
+        tx.executeSql("DELETE FROM topics WHERE id = ?", [id]);
+    });
 }

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ragassistant.ragassistant\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-16 12:46+0000\n"
+"POT-Creation-Date: 2026-05-16 13:25+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,239 +17,297 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../qml/ChatPage.qml:93 ../qml/SplashScreen.qml:150
-#: ../qml/components/ConversationList.qml:81 ragassistant.desktop.in.h:1
+#: ../qml/ChatPage.qml:120 ../qml/SettingsPage.qml:26
+msgid "General"
+msgstr ""
+
+#: ../qml/ChatPage.qml:146 ../qml/SplashScreen.qml:150
+#: ../qml/components/ConversationList.qml:95 ragassistant.desktop.in.h:1
 msgid "RAG Assistant"
 msgstr ""
 
-#: ../qml/ChatPage.qml:102
+#: ../qml/ChatPage.qml:155
 msgid "Conversations"
 msgstr ""
 
-#: ../qml/ChatPage.qml:109 ../qml/components/ConversationList.qml:118
+#: ../qml/ChatPage.qml:162 ../qml/components/ConversationList.qml:132
 msgid "New chat"
 msgstr ""
 
-#: ../qml/ChatPage.qml:115 ../qml/SettingsPage.qml:23
+#: ../qml/ChatPage.qml:168 ../qml/SettingsPage.qml:57
 msgid "Settings"
 msgstr ""
 
-#: ../qml/ChatPage.qml:250
+#: ../qml/ChatPage.qml:384
 msgid "Set your OpenRouter API Key in Settings."
 msgstr ""
 
-#: ../qml/ChatPage.qml:406
+#: ../qml/ChatPage.qml:490
+msgid "Auto"
+msgstr ""
+
+#: ../qml/ChatPage.qml:584
 msgid "Ask anything about your documents"
 msgstr ""
 
-#: ../qml/ChatPage.qml:417
+#: ../qml/ChatPage.qml:595
 msgid ""
 "Your assistant retrieves relevant context from the knowledge base and "
 "answers using a language model."
 msgstr ""
 
-#: ../qml/ChatPage.qml:429
+#: ../qml/ChatPage.qml:607
 msgid "Summarize the working hours policy"
 msgstr ""
 
-#: ../qml/ChatPage.qml:430
+#: ../qml/ChatPage.qml:608
 msgid "From the internal regulations"
 msgstr ""
 
-#: ../qml/ChatPage.qml:436
+#: ../qml/ChatPage.qml:614
 msgid "What are the security and JWT requirements?"
 msgstr ""
 
-#: ../qml/ChatPage.qml:437
+#: ../qml/ChatPage.qml:615
 msgid "From operations and security docs"
 msgstr ""
 
-#: ../qml/ChatPage.qml:443
+#: ../qml/ChatPage.qml:621
 msgid "List the vacation rules"
 msgstr ""
 
-#: ../qml/ChatPage.qml:444
+#: ../qml/ChatPage.qml:622
 msgid "From HR documents"
 msgstr ""
 
-#: ../qml/ChatPage.qml:560
+#: ../qml/ChatPage.qml:738
 msgid "Listening…"
 msgstr ""
 
-#: ../qml/ChatPage.qml:562
+#: ../qml/ChatPage.qml:740
 msgid "Transcribing…"
 msgstr ""
 
-#: ../qml/ChatPage.qml:563
+#: ../qml/ChatPage.qml:741
 msgid "Ask about your documents…"
 msgstr ""
 
-#: ../qml/ChatPage.qml:749
+#: ../qml/ChatPage.qml:928
 msgid "Rename conversation"
 msgstr ""
 
-#: ../qml/ChatPage.qml:750
+#: ../qml/ChatPage.qml:929
 msgid "Title"
 msgstr ""
 
-#: ../qml/ChatPage.qml:759 ../qml/ChatPage.qml:790
+#: ../qml/ChatPage.qml:938 ../qml/ChatPage.qml:969 ../qml/SettingsPage.qml:778
+#: ../qml/SettingsPage.qml:818
 msgid "Cancel"
 msgstr ""
 
-#: ../qml/ChatPage.qml:763
+#: ../qml/ChatPage.qml:942 ../qml/SettingsPage.qml:782
 msgid "Save"
 msgstr ""
 
-#: ../qml/ChatPage.qml:784
+#: ../qml/ChatPage.qml:963
 msgid "Delete conversation"
 msgstr ""
 
-#: ../qml/ChatPage.qml:785
+#: ../qml/ChatPage.qml:964
 msgid "Delete \"%1\"? This cannot be undone."
 msgstr ""
 
-#: ../qml/ChatPage.qml:785 ../qml/components/ConversationList.qml:251
+#: ../qml/ChatPage.qml:964 ../qml/SettingsPage.qml:386
+#: ../qml/components/ConversationList.qml:278
 msgid "Untitled"
 msgstr ""
 
-#: ../qml/ChatPage.qml:794
+#: ../qml/ChatPage.qml:973 ../qml/SettingsPage.qml:822
 msgid "Delete"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:54
+#: ../qml/ChatPage.qml:1007
+msgid "Choose topic"
+msgstr ""
+
+#: ../qml/ChatPage.qml:1041
+msgid "Auto (classify per query)"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:88
 msgid "Appearance"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:60
+#: ../qml/SettingsPage.qml:94
 msgid "Theme"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:68
+#: ../qml/SettingsPage.qml:102
 msgid "Dark"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:69
+#: ../qml/SettingsPage.qml:103
 msgid "Light"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:106
+#: ../qml/SettingsPage.qml:140
 msgid "Accent color"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:147
+#: ../qml/SettingsPage.qml:181
 msgid "Interface"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:153
+#: ../qml/SettingsPage.qml:187
 msgid "Language"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:162
+#: ../qml/SettingsPage.qml:196
 msgid "English"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:163
+#: ../qml/SettingsPage.qml:197
 msgid "Spanish"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:164
+#: ../qml/SettingsPage.qml:198
 msgid "Dutch"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:202 ../qml/SettingsPage.qml:461
+#: ../qml/SettingsPage.qml:236 ../qml/SettingsPage.qml:651
 msgid "Language model"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:204
+#: ../qml/SettingsPage.qml:238
 msgid "OpenRouter API Key"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:214
+#: ../qml/SettingsPage.qml:248
 msgid "Model"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:223 ../qml/SettingsPage.qml:238
-#: ../qml/SettingsPage.qml:289 ../qml/SettingsPage.qml:312
+#: ../qml/SettingsPage.qml:257 ../qml/SettingsPage.qml:272
+#: ../qml/SettingsPage.qml:323 ../qml/SettingsPage.qml:502
 msgid "Base URL"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:236 ../qml/SettingsPage.qml:455
+#: ../qml/SettingsPage.qml:270 ../qml/SettingsPage.qml:645
 msgid "Vector store (Chroma)"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:246
+#: ../qml/SettingsPage.qml:280
 msgid "Tenant"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:254
+#: ../qml/SettingsPage.qml:288
 msgid "Database"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:262
+#: ../qml/SettingsPage.qml:296 ../qml/SettingsPage.qml:710
 msgid "Collection ID"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:270
+#: ../qml/SettingsPage.qml:304
 msgid "Top K results"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:287 ../qml/SettingsPage.qml:458
+#: ../qml/SettingsPage.qml:321 ../qml/SettingsPage.qml:648
 msgid "Embeddings (Ollama)"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:297
+#: ../qml/SettingsPage.qml:331
 msgid "Embedding model"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:310
+#: ../qml/SettingsPage.qml:344
+msgid "Topics"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:454
+msgid "No topics yet"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:479
+msgid "Add topic"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:500
 msgid "Voice (TTS)"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:320
+#: ../qml/SettingsPage.qml:510
 msgid "Voice (empty = auto by language)"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:336
+#: ../qml/SettingsPage.qml:526
 msgid "Auto-speak assistant replies"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:352
+#: ../qml/SettingsPage.qml:542
 msgid "Connectivity"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:374
+#: ../qml/SettingsPage.qml:564
 msgid "OK"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:375
+#: ../qml/SettingsPage.qml:565
 msgid "Failed"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:376
+#: ../qml/SettingsPage.qml:566
 msgid "Testing…"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:415
+#: ../qml/SettingsPage.qml:605
 msgid "No API key"
 msgstr ""
 
-#: ../qml/SettingsPage.qml:437
+#: ../qml/SettingsPage.qml:627
 msgid "Test connection"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:694
+msgid "Edit topic"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:694
+msgid "New topic"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:700
+msgid "Name"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:720
+msgid "Color"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:754
+msgid "System prompt addon (optional)"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:811
+msgid "Delete topic"
+msgstr ""
+
+#: ../qml/SettingsPage.qml:812
+msgid "Delete topic \"%1\"? Conversations using it will become Auto."
 msgstr ""
 
 #: ../qml/SplashScreen.qml:163
 msgid "Smart answers from your documents"
 msgstr ""
 
-#: ../qml/components/ConversationList.qml:179
+#: ../qml/components/ConversationList.qml:193
 msgid "Search conversations"
 msgstr ""
 
-#: ../qml/components/ConversationList.qml:333
+#: ../qml/components/ConversationList.qml:361
 msgid "No conversations yet"
 msgstr ""
 
-#: ../qml/components/ConversationList.qml:334
+#: ../qml/components/ConversationList.qml:362
 msgid "No matches"
 msgstr ""
 
@@ -265,14 +323,18 @@ msgstr ""
 msgid "System"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:235
+#: ../qml/components/MessageBubble.qml:237
 msgid "Searching context…"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:236
+#: ../qml/components/MessageBubble.qml:239
+msgid "Classifying topic…"
+msgstr ""
+
+#: ../qml/components/MessageBubble.qml:240
 msgid "Thinking…"
 msgstr ""
 
-#: ../qml/components/MessageBubble.qml:347
+#: ../qml/components/MessageBubble.qml:351
 msgid "(no snippet)"
 msgstr ""

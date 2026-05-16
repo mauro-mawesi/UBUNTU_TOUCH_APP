@@ -6,9 +6,23 @@ Item {
     id: root
     property var appTheme
     property var i18nApp
-    property var conversations: []      // [{id, title, lastMessage, updatedAt, messageCount}, ...]
+    property var conversations: []      // [{id, title, lastMessage, updatedAt, messageCount, topicId}, ...]
+    property var topics: []             // [{id, colorPresetIndex, ...}, ...] — used for the per-row color dot
     property int currentId: -1
     property string filterText: ""
+
+    function _topicColorFor(topicId) {
+        if (!topicId || topicId <= 0) return "transparent";
+        for (var i = 0; i < topics.length; i++) {
+            if (topics[i].id === topicId) {
+                var presets = appTheme.presets || [];
+                var idx = topics[i].colorPresetIndex || 0;
+                if (idx >= 0 && idx < presets.length) return presets[idx].primary;
+                return appTheme.primary;
+            }
+        }
+        return "transparent";
+    }
     signal newChatRequested()
     signal conversationSelected(int id)
     signal renameRequested(int id, string currentTitle)
@@ -244,15 +258,29 @@ Item {
                     }
                     spacing: units.gu(0.2)
 
-                    Label {
+                    RowLayout {
                         Layout.fillWidth: true
-                        text: modelData.title.length > 0
-                              ? modelData.title
-                              : i18nApp.tr("Untitled")
-                        color: appTheme.text
-                        textSize: Label.Small
-                        elide: Text.ElideRight
-                        maximumLineCount: 1
+                        spacing: units.gu(0.6)
+
+                        Rectangle {
+                            Layout.preferredWidth: units.gu(0.9)
+                            Layout.preferredHeight: units.gu(0.9)
+                            Layout.alignment: Qt.AlignVCenter
+                            radius: width / 2
+                            color: root._topicColorFor(modelData.topicId)
+                            visible: modelData.topicId > 0
+                        }
+
+                        Label {
+                            Layout.fillWidth: true
+                            text: modelData.title.length > 0
+                                  ? modelData.title
+                                  : i18nApp.tr("Untitled")
+                            color: appTheme.text
+                            textSize: Label.Small
+                            elide: Text.ElideRight
+                            maximumLineCount: 1
+                        }
                     }
                     Label {
                         Layout.fillWidth: true
