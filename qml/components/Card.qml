@@ -5,10 +5,14 @@ import QtQuick.Layouts 1.3
 Rectangle {
     id: card
     property string sectionTitle: ""
+    // When set, sectionTitle is ignored and the header label is rendered
+    // through TransLabel — animated blur+fade on language change.
+    property string sectionTitleKey: ""
     property string icon: ""           // optional Lomiri icon name shown left of title
     property bool collapsible: false   // header tap toggles `collapsed`
     property bool collapsed: false
     property var appTheme
+    property var i18nApp               // required if sectionTitleKey is used
     default property alias content: inner.data
 
     signal toggled()
@@ -41,7 +45,10 @@ Rectangle {
             id: headerWrap
             Layout.fillWidth: true
             implicitHeight: headerRow.implicitHeight + units.gu(0.3)
-            visible: (card.sectionTitle.length > 0) || card.collapsible || (card.icon.length > 0)
+            visible: (card.sectionTitle.length > 0)
+                     || (card.sectionTitleKey.length > 0)
+                     || card.collapsible
+                     || (card.icon.length > 0)
 
             RowLayout {
                 id: headerRow
@@ -57,6 +64,7 @@ Rectangle {
                     color: appTheme ? appTheme.text : "#e6edf3"
                 }
 
+                // Plain label (used when only a static sectionTitle is given).
                 Label {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignVCenter
@@ -64,7 +72,18 @@ Rectangle {
                     textSize: Label.Medium
                     color: appTheme ? appTheme.text : "#e6edf3"
                     font.bold: true
-                    visible: text.length > 0
+                    visible: text.length > 0 && card.sectionTitleKey.length === 0
+                }
+                // Animated label (used when sectionTitleKey is given).
+                TransLabel {
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
+                    visible: card.sectionTitleKey.length > 0
+                    i18nApp: card.i18nApp
+                    key: card.sectionTitleKey
+                    color: appTheme ? appTheme.text : "#e6edf3"
+                    bold: true
+                    fontPixelSize: FontUtils.sizeToPixels("medium")
                 }
 
                 Icon {

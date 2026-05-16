@@ -14,4 +14,15 @@ QtObject {
     function detect(localeName) {
         return Data.detectFromSystem(localeName);
     }
+
+    // Hands out a monotonically increasing stagger index to TransLabel
+    // instances so the language-switch animation cascades across the UI
+    // in the order labels are created (top-down). Wraps modulo 24 to
+    // cap the total cascade duration.
+    property int _staggerCounter: 0
+    function nextStaggerIndex() {
+        var n = _staggerCounter;
+        _staggerCounter = (_staggerCounter + 1) % 24;
+        return n;
+    }
 }

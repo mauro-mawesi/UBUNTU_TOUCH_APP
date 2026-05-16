@@ -87,7 +87,8 @@ Page {
             Card {
                 Layout.fillWidth: true
                 appTheme: page.appTheme
-                sectionTitle: i18nApp.tr("Appearance")
+                i18nApp: page.i18nApp
+                sectionTitleKey: "Appearance"
                 icon: "preferences-desktop-theme-symbolic"
                 collapsible: true
 
@@ -103,8 +104,8 @@ Page {
 
                     Repeater {
                         model: [
-                            { code: "dark",  label: i18nApp.tr("Dark") },
-                            { code: "light", label: i18nApp.tr("Light") }
+                            { code: "dark",  labelKey: "Dark" },
+                            { code: "light", labelKey: "Light" }
                         ]
                         Rectangle {
                             Layout.fillWidth: true
@@ -118,13 +119,14 @@ Page {
                             border.width: 1
                             Behavior on color { ColorAnimation { duration: 120 } }
 
-                            Label {
+                            TransLabel {
                                 anchors.centerIn: parent
-                                text: modelData.label
+                                i18nApp: page.i18nApp
+                                key: modelData.labelKey
                                 color: appSettings.themeMode === modelData.code
                                        ? appTheme.textOnPrimary : appTheme.text
-                                textSize: Label.Small
-                                font.bold: appSettings.themeMode === modelData.code
+                                fontPixelSize: FontUtils.sizeToPixels("small")
+                                bold: appSettings.themeMode === modelData.code
                             }
                             MouseArea {
                                 id: themeMouse
@@ -190,7 +192,8 @@ Page {
             Card {
                 Layout.fillWidth: true
                 appTheme: page.appTheme
-                sectionTitle: i18nApp.tr("Interface")
+                i18nApp: page.i18nApp
+                sectionTitleKey: "Interface"
                 icon: "preferences-desktop-locale-symbolic"
                 collapsible: true
 
@@ -207,9 +210,9 @@ Page {
 
                     Repeater {
                         model: [
-                            { code: "en", label: i18nApp.tr("English") },
-                            { code: "es", label: i18nApp.tr("Spanish") },
-                            { code: "nl", label: i18nApp.tr("Dutch") }
+                            { code: "en", labelKey: "English" },
+                            { code: "es", labelKey: "Spanish" },
+                            { code: "nl", labelKey: "Dutch" }
                         ]
                         Rectangle {
                             Layout.fillWidth: true
@@ -223,13 +226,14 @@ Page {
                             border.width: 1
                             Behavior on color { ColorAnimation { duration: 120 } }
 
-                            Label {
+                            TransLabel {
                                 anchors.centerIn: parent
-                                text: modelData.label
+                                i18nApp: page.i18nApp
+                                key: modelData.labelKey
                                 color: appSettings.language === modelData.code
                                        ? appTheme.textOnPrimary : appTheme.text
-                                textSize: Label.Small
-                                font.bold: appSettings.language === modelData.code
+                                fontPixelSize: FontUtils.sizeToPixels("small")
+                                bold: appSettings.language === modelData.code
                             }
                             MouseArea {
                                 id: langMouse
@@ -247,11 +251,12 @@ Page {
             Card {
                 Layout.fillWidth: true
                 appTheme: page.appTheme
-                sectionTitle: i18nApp.tr("Language model")
+                i18nApp: page.i18nApp
+                sectionTitleKey: "Language model"
                 icon: "system-run"
                 collapsible: true
 
-                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; text: i18nApp.tr("OpenRouter API Key") }
+                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "OpenRouter API Key" }
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: units.gu(0.4)
@@ -290,7 +295,7 @@ Page {
                     }
                 }
 
-                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; text: i18nApp.tr("Model") }
+                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Model" }
                 StyledField {
                     Layout.fillWidth: true
                     appTheme: page.appTheme
@@ -299,7 +304,7 @@ Page {
                     onTextChanged: appSettings.model = text
                 }
 
-                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; text: i18nApp.tr("Base URL") }
+                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Base URL" }
                 StyledField {
                     Layout.fillWidth: true
                     appTheme: page.appTheme
@@ -341,12 +346,13 @@ Page {
             Card {
                 Layout.fillWidth: true
                 appTheme: page.appTheme
-                sectionTitle: i18nApp.tr("Vector store (Chroma)")
+                i18nApp: page.i18nApp
+                sectionTitleKey: "Vector store (Chroma)"
                 icon: "drive-harddisk-symbolic"
                 collapsible: true
                 collapsed: true
 
-                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; text: i18nApp.tr("Base URL") }
+                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Base URL" }
                 StyledField {
                     Layout.fillWidth: true
                     appTheme: page.appTheme
@@ -354,7 +360,7 @@ Page {
                     onTextChanged: appSettings.chromaUrl = text
                 }
 
-                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; text: i18nApp.tr("Tenant") }
+                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Tenant" }
                 StyledField {
                     Layout.fillWidth: true
                     appTheme: page.appTheme
@@ -362,7 +368,7 @@ Page {
                     onTextChanged: appSettings.tenant = text
                 }
 
-                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; text: i18nApp.tr("Database") }
+                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Database" }
                 StyledField {
                     Layout.fillWidth: true
                     appTheme: page.appTheme
@@ -370,7 +376,7 @@ Page {
                     onTextChanged: appSettings.database = text
                 }
 
-                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; text: i18nApp.tr("Collection ID") }
+                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Collection ID" }
                 StyledField {
                     Layout.fillWidth: true
                     appTheme: page.appTheme
@@ -378,7 +384,7 @@ Page {
                     onTextChanged: appSettings.collectionId = text
                 }
 
-                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; text: i18nApp.tr("Top K results") }
+                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Top K results" }
                 StyledField {
                     Layout.fillWidth: true
                     appTheme: page.appTheme
@@ -395,12 +401,13 @@ Page {
             Card {
                 Layout.fillWidth: true
                 appTheme: page.appTheme
-                sectionTitle: i18nApp.tr("Embeddings (Ollama)")
+                i18nApp: page.i18nApp
+                sectionTitleKey: "Embeddings (Ollama)"
                 icon: "view-list-symbolic"
                 collapsible: true
                 collapsed: true
 
-                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; text: i18nApp.tr("Base URL") }
+                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Base URL" }
                 StyledField {
                     Layout.fillWidth: true
                     appTheme: page.appTheme
@@ -408,7 +415,7 @@ Page {
                     onTextChanged: appSettings.ollamaUrl = text
                 }
 
-                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; text: i18nApp.tr("Embedding model") }
+                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Embedding model" }
                 StyledField {
                     Layout.fillWidth: true
                     appTheme: page.appTheme
@@ -421,7 +428,8 @@ Page {
             Card {
                 Layout.fillWidth: true
                 appTheme: page.appTheme
-                sectionTitle: i18nApp.tr("Topics")
+                i18nApp: page.i18nApp
+                sectionTitleKey: "Topics"
                 icon: "tag"
                 collapsible: true
 
@@ -579,12 +587,13 @@ Page {
             Card {
                 Layout.fillWidth: true
                 appTheme: page.appTheme
-                sectionTitle: i18nApp.tr("Voice (TTS)")
+                i18nApp: page.i18nApp
+                sectionTitleKey: "Voice (TTS)"
                 icon: "audio-input-microphone-symbolic"
                 collapsible: true
                 collapsed: true
 
-                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; text: i18nApp.tr("Base URL") }
+                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Base URL" }
                 StyledField {
                     Layout.fillWidth: true
                     appTheme: page.appTheme
@@ -592,7 +601,7 @@ Page {
                     onTextChanged: appSettings.ttsUrl = text
                 }
 
-                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; text: i18nApp.tr("Voice (empty = auto by language)") }
+                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Voice (empty = auto by language)" }
                 StyledField {
                     Layout.fillWidth: true
                     appTheme: page.appTheme
@@ -624,7 +633,8 @@ Page {
                 id: connectivityCard
                 Layout.fillWidth: true
                 appTheme: page.appTheme
-                sectionTitle: i18nApp.tr("Connectivity")
+                i18nApp: page.i18nApp
+                sectionTitleKey: "Connectivity"
                 icon: "network-wireless"
                 collapsible: true
 
@@ -784,7 +794,7 @@ Page {
                 width: parent ? parent.width : units.gu(38)
                 spacing: units.gu(0.4)
 
-                FieldLabel { width: parent.width; appTheme: page.appTheme; text: i18nApp.tr("Name") }
+                FieldLabel { width: parent.width; appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Name" }
                 StyledField {
                     id: nameField
                     width: parent.width
@@ -794,7 +804,7 @@ Page {
 
                 Item { width: 1; height: units.gu(0.4) }
 
-                FieldLabel { width: parent.width; appTheme: page.appTheme; text: i18nApp.tr("Collection ID") }
+                FieldLabel { width: parent.width; appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Collection ID" }
                 StyledField {
                     id: collectionField
                     width: parent.width
@@ -804,7 +814,7 @@ Page {
 
                 Item { width: 1; height: units.gu(0.4) }
 
-                FieldLabel { width: parent.width; appTheme: page.appTheme; text: i18nApp.tr("Color") }
+                FieldLabel { width: parent.width; appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Color" }
                 Flow {
                     width: parent.width
                     spacing: units.gu(0.6)
@@ -838,7 +848,7 @@ Page {
 
                 Item { width: 1; height: units.gu(0.4) }
 
-                FieldLabel { width: parent.width; appTheme: page.appTheme; text: i18nApp.tr("System prompt addon (optional)") }
+                FieldLabel { width: parent.width; appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "System prompt addon (optional)" }
                 Rectangle {
                     width: parent.width
                     height: units.gu(9)
