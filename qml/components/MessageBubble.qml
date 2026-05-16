@@ -38,8 +38,15 @@ Item {
     // F7: which chip is currently expanded (-1 = none)
     property int expandedSourceIdx: -1
 
+    // Don't render carcass-bubbles: a user/system row with no text leaves an
+    // empty pill (avatar + role label, nothing else) — looked like a broken
+    // widget. Assistant bubbles must still render while `streaming` so the
+    // typing dots + phase label have a surface. Tool bubbles never use `text`.
+    visible: text.length > 0 || streaming || isTool
     width: parent ? parent.width : 0
-    height: isTool ? (toolCard.height + units.gu(1.0)) : (bg.height + units.gu(1.2))
+    height: visible ? (isTool ? (toolCard.height + units.gu(1.0))
+                              : (bg.height + units.gu(1.2)))
+                    : 0
 
     // F1: hidden helper to push text into the system clipboard
     TextEdit {

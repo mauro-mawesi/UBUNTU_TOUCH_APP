@@ -291,6 +291,10 @@ Page {
     }
 
     function appendMessage(role, content, sources, streaming, phase) {
+        // Defensive: ignore empty user messages. sendQuery already trims, but
+        // this guarantees the model never gets a phantom "user" row that
+        // MessageBubble would otherwise hide (leaving a gap with no content).
+        if (role === "user" && (!content || content.trim().length === 0)) return;
         messagesModel.append({
             role: role,
             content: content || "",

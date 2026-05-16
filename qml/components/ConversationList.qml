@@ -308,14 +308,21 @@ Item {
                     }
                     Label {
                         Layout.fillWidth: true
-                        text: modelData.lastMessage
-                              ? modelData.lastMessage.substring(0, 80).replace(/\n/g, " ")
-                              : ""
+                        // Hide the preview when it would just repeat the title.
+                        // `deriveTitle` seeds the row from the first message,
+                        // so brand-new conversations would otherwise show the
+                        // same text on both lines (e.g. "Hola / Hola").
+                        readonly property string _previewRaw: modelData.lastMessage
+                                ? modelData.lastMessage.substring(0, 80).replace(/\n/g, " ").trim()
+                                : ""
+                        readonly property string _titleNorm: (modelData.title || "").trim()
+                        text: _previewRaw
                         color: appTheme.textMuted
                         textSize: Label.XSmall
                         elide: Text.ElideRight
                         maximumLineCount: 1
                         visible: text.length > 0
+                                 && _previewRaw.toLowerCase() !== _titleNorm.toLowerCase()
                     }
                 }
 
