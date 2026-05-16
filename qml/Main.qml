@@ -123,6 +123,7 @@ MainView {
         i18nApp: i18nApp
         appTheme: appTheme
         themeTransition: themeTransition
+        accentSweep: accentSweep
         chatBusy: chatPage.busy
     }
 
@@ -130,11 +131,26 @@ MainView {
         id: themeTransition
         anchors.fill: parent
         captureSource: root
-        // Used for dark/light mode toggles. Accent uses per-component
-        // AccentFlicker overlays + the AppTheme color Behavior instead.
+        // Used for dark/light mode toggles. Accent has its own overlay
+        // (`accentSweep` below) so it doesn't need to capture a snapshot.
         onApply: {
             if (typeof payload === "string") {
                 appSettings.themeMode = payload;
+            }
+        }
+    }
+
+    // Diagonal beam-of-light sweep used for accent preset changes. Drives
+    // the actual `themePresetIndex` mutation from its midpoint signal so
+    // the beam visually deposits the new colour while AppTheme's Behavior
+    // simultaneously morphs every derived shade.
+    AccentSweep {
+        id: accentSweep
+        property int pendingIndex: -1
+        onApply: {
+            if (pendingIndex >= 0) {
+                appSettings.themePresetIndex = pendingIndex;
+                pendingIndex = -1;
             }
         }
     }

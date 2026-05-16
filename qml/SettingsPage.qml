@@ -11,6 +11,7 @@ Page {
     property var i18nApp
     property var appTheme
     property var themeTransition: null
+    property var accentSweep: null
     // When true, theme/accent changes apply directly instead of running the
     // capture+circle-reveal animation. Avoids freezing a snapshot of an
     // in-flight chat bubble (visual jank + brief privacy concern) and
@@ -170,10 +171,6 @@ Page {
                                     }
                                 }
                             }
-                            AccentFlicker {
-                                appTheme: page.appTheme
-                                visible: appSettings.themeMode === modelData.code
-                            }
                         }
                     }
                 }
@@ -213,11 +210,23 @@ Page {
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
-                                // AppTheme's Behavior on color morphs the
-                                // whole UI smoothly, and the accent-using
-                                // components carry their own AccentFlicker
-                                // for the localized CRT pulse.
-                                onClicked: appSettings.themePresetIndex = index
+                                // Diagonal sweep overlays a beam of light
+                                // in the new accent and applies the mutation
+                                // at midpoint; AppTheme's color Behavior
+                                // morphs every derived shade underneath.
+                                // Direct mutation when the chat is busy so
+                                // a streaming-frame snapshot doesn't freeze
+                                // mid-response.
+                                onClicked: {
+                                    if (appSettings.themePresetIndex === index) return;
+                                    if (page.accentSweep && !page.chatBusy) {
+                                        page.accentSweep.pendingIndex = index;
+                                        page.accentSweep.run(modelData.primary,
+                                                             modelData.secondary);
+                                    } else {
+                                        appSettings.themePresetIndex = index;
+                                    }
+                                }
                             }
                         }
                     }
@@ -278,10 +287,6 @@ Page {
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: appSettings.language = modelData.code
-                            }
-                            AccentFlicker {
-                                appTheme: page.appTheme
-                                visible: appSettings.language === modelData.code
                             }
                         }
                     }
@@ -623,7 +628,6 @@ Page {
                             cursorShape: Qt.PointingHandCursor
                             onClicked: page.openTopicEditor(null)
                         }
-                        AccentFlicker { appTheme: page.appTheme }
                     }
                 }
             }
@@ -799,7 +803,6 @@ Page {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: connectivityCard.testAll()
                     }
-                    AccentFlicker { appTheme: page.appTheme }
                 }
 
                 // Status rows

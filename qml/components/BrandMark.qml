@@ -67,7 +67,5 @@ Item {
             font.pixelSize: disc.width * 0.6
         }
 
-        // CRT-style flicker when the accent preset changes.
-        AccentFlicker { appTheme: root.appTheme }
     }
 }

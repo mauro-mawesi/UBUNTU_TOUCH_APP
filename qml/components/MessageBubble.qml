@@ -135,7 +135,6 @@ Item {
                 GradientStop { position: 0.0; color: appTheme.primary }
                 GradientStop { position: 1.0; color: appTheme.secondary }
             }
-            AccentFlicker { appTheme: bubble.appTheme }
         }
 
         // F1 + speaker: action buttons grouped at the top-right of the bubble.
