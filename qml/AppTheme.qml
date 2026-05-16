@@ -99,6 +99,25 @@ QtObject {
     readonly property real radiusLg:   units.gu(1.5)
     readonly property real radiusPill: units.gu(99)
 
+    // ---- spacing ----
+    // Use these instead of raw `units.gu(...)` whenever spacing the layout.
+    // Keeps margins/paddings consistent across components; adding a new
+    // discrete step here is a one-line change (preferred over reaching for
+    // a half-step like gu(1.3)).
+    readonly property real space1: units.gu(0.5)
+    readonly property real space2: units.gu(1.0)
+    readonly property real space3: units.gu(1.5)
+    readonly property real space4: units.gu(2.0)
+    readonly property real space5: units.gu(3.0)
+
+    // ---- motion ----
+    // Durations in ms. `motionFast` for hover/press state changes,
+    // `motionBase` for slide/collapse panels, `motionSlow` for content
+    // transitions (e.g. theme morph already overrides at 520ms).
+    readonly property int motionFast: 120
+    readonly property int motionBase: 200
+    readonly property int motionSlow: 320
+
     // ---- elevation ----
     // Values consumed by RectangularGlow (QtGraphicalEffects). Use:
     //   RectangularGlow { glowRadius: appTheme.elev1.blur; color: appTheme.elev1.color; ... }
