@@ -52,24 +52,25 @@ Item {
         property real centerV: root.height > 0 ? root.py / root.height : 0.5
         property real radius: 0
         property real ratio:  root.height > 0 ? root.width / root.height : 1
-        fragmentShader: "
-            uniform sampler2D src;
-            uniform highp float centerU;
-            uniform highp float centerV;
-            uniform highp float radius;
-            uniform highp float ratio;
-            uniform lowp  float qt_Opacity;
-            varying highp vec2 qt_TexCoord0;
-            void main() {
-                highp vec2 d = vec2((qt_TexCoord0.x - centerU) * ratio,
-                                    qt_TexCoord0.y - centerV);
-                highp float r = length(d);
-                highp float edge = 0.004;
-                highp float a = smoothstep(radius - edge, radius + edge, r);
-                lowp vec4 c = texture2D(src, qt_TexCoord0);
-                gl_FragColor = c * a * qt_Opacity;
-            }
-        "
+        // Concatenated single-line literals so xgettext doesn't trip on the
+        // multiline string (warnings: "unterminated string") during build.
+        fragmentShader:
+            "uniform sampler2D src;\n" +
+            "uniform highp float centerU;\n" +
+            "uniform highp float centerV;\n" +
+            "uniform highp float radius;\n" +
+            "uniform highp float ratio;\n" +
+            "uniform lowp  float qt_Opacity;\n" +
+            "varying highp vec2 qt_TexCoord0;\n" +
+            "void main() {\n" +
+            "    highp vec2 d = vec2((qt_TexCoord0.x - centerU) * ratio,\n" +
+            "                        qt_TexCoord0.y - centerV);\n" +
+            "    highp float r = length(d);\n" +
+            "    highp float edge = 0.004;\n" +
+            "    highp float a = smoothstep(radius - edge, radius + edge, r);\n" +
+            "    lowp vec4 c = texture2D(src, qt_TexCoord0);\n" +
+            "    gl_FragColor = c * a * qt_Opacity;\n" +
+            "}\n"
     }
 
     NumberAnimation {

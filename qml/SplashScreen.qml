@@ -113,32 +113,14 @@ Item {
         }
 
         // ---- logo bubble ----
-        Rectangle {
+        BrandMark {
             id: logoBubble
             anchors.centerIn: parent
             anchors.verticalCenterOffset: -units.gu(4)
-            width: units.gu(11); height: width
-            radius: width / 2
+            size: units.gu(11)
+            withRing: true
             scale: 0
-            gradient: Gradient {
-                GradientStop { position: 0.0; color: appTheme ? Qt.lighter(appTheme.primary, 1.25) : "#a5b4fc" }
-                GradientStop { position: 1.0; color: appTheme ? appTheme.secondary : "#8b5cf6" }
-            }
-            // soft inner glow
-            Rectangle {
-                anchors.fill: parent
-                anchors.margins: units.gu(0.4)
-                radius: width / 2
-                color: "transparent"
-                border.color: Qt.rgba(1, 1, 1, 0.35)
-                border.width: 1
-            }
-            Label {
-                anchors.centerIn: parent
-                text: "✦"
-                color: "white"
-                font.pixelSize: units.gu(5.5)
-            }
+            appTheme: splash.appTheme
         }
 
         // ---- title ----
