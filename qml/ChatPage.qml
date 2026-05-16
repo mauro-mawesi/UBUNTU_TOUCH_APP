@@ -83,7 +83,7 @@ Page {
                 streaming: false,
                 phase: "",
                 timestamp: m.createdAt || 0,
-                model: ""
+                modelName: ""
             });
             if (m.role === "user" || m.role === "assistant") {
                 history.push({ role: m.role, content: m.content });
@@ -274,7 +274,7 @@ Page {
             toolResult: "",
             toolError: "",
             timestamp: Date.now(),
-            model: role === "assistant" ? (appSettings.model || "") : ""
+            modelName: role === "assistant" ? (appSettings.model || "") : ""
         });
         // F9: user-sent messages re-anchor at the tail; otherwise respect
         // wherever the user is reading.
@@ -307,7 +307,7 @@ Page {
             toolResult: resStr,
             toolError: errStr,
             timestamp: Date.now(),
-            model: ""
+            modelName: ""
         });
         Qt.callLater(function() {
             if (listView.stickToBottom) listView.positionViewAtEnd();
@@ -804,7 +804,7 @@ Page {
                             toolResult: model.toolResult || ""
                             toolError: model.toolError || ""
                             timestamp: model.timestamp || 0
-                            modelLabel: model.model || ""
+                            modelLabel: model.modelName || ""
                             i18nApp: page.i18nApp
                             appTheme: page.appTheme
                             speaking: page.speakingIndex === index
