@@ -183,16 +183,10 @@ Page {
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    if (appSettings.themePresetIndex === index) return;
-                                    if (page.themeTransition) {
-                                        var p = mapToItem(null, mouse.x, mouse.y);
-                                        page.themeTransition.tintColor = modelData.primary;
-                                        page.themeTransition.run(p.x, p.y, index);
-                                    } else {
-                                        appSettings.themePresetIndex = index;
-                                    }
-                                }
+                                // No wave for accent — the AppTheme color
+                                // properties animate via Behavior on color,
+                                // morphing the whole UI from old to new.
+                                onClicked: appSettings.themePresetIndex = index
                             }
                         }
                     }

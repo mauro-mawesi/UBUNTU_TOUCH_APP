@@ -19,8 +19,19 @@ QtObject {
     ]
 
     readonly property bool isDark: mode === "dark"
-    readonly property string primary:   presets[presetIndex].primary
-    readonly property string secondary: presets[presetIndex].secondary
+
+    // Animated color morph: changing presetIndex re-evaluates the bindings
+    // below, and the Behavior on each interpolates from the old color to
+    // the new one. Every downstream property derived from primary/secondary
+    // (chipBg, bubbleAssistant, gradients, etc.) inherits the animation
+    // for free via binding re-evaluation.
+    property color _primaryAnim:   presets[presetIndex].primary
+    property color _secondaryAnim: presets[presetIndex].secondary
+    Behavior on _primaryAnim   { ColorAnimation { duration: 520; easing.type: Easing.InOutCubic } }
+    Behavior on _secondaryAnim { ColorAnimation { duration: 520; easing.type: Easing.InOutCubic } }
+
+    readonly property color primary:   _primaryAnim
+    readonly property color secondary: _secondaryAnim
 
     // ---- backgrounds ----
     readonly property string bg:               isDark ? "#0b0f17" : "#f6f7fb"
@@ -102,30 +113,27 @@ QtObject {
         spread: 0.15
     })
 
-    function withAlpha(hex, a) {
-        if (!hex || hex.length < 7) return Qt.rgba(0, 0, 0, a);
-        var r = parseInt(hex.substring(1, 3), 16) / 255;
-        var g = parseInt(hex.substring(3, 5), 16) / 255;
-        var b = parseInt(hex.substring(5, 7), 16) / 255;
-        return Qt.rgba(r, g, b, a);
+    // Accepts either a "#rrggbb" hex string OR a QColor (from animated
+    // properties like primary/secondary). Returns a Qt color with `a` alpha.
+    function withAlpha(c, a) {
+        var col = (typeof c === "string") ? Qt.color(c) : c;
+        if (!col) return Qt.rgba(0, 0, 0, a);
+        return Qt.rgba(col.r, col.g, col.b, a);
     }
 
-    function _comp(v, t) { return Math.round((v + (1 - v) * t) * 255); }
-    function _compD(v, t) { return Math.round(v * (1 - t) * 255); }
-
-    function lighten(hex, t) {
-        if (!hex || hex.length < 7) return hex;
-        var r = parseInt(hex.substring(1, 3), 16) / 255;
-        var g = parseInt(hex.substring(3, 5), 16) / 255;
-        var b = parseInt(hex.substring(5, 7), 16) / 255;
-        return Qt.rgba(r + (1 - r) * t, g + (1 - g) * t, b + (1 - b) * t, 1);
+    function lighten(c, t) {
+        var col = (typeof c === "string") ? Qt.color(c) : c;
+        if (!col) return c;
+        return Qt.rgba(col.r + (1 - col.r) * t,
+                       col.g + (1 - col.g) * t,
+                       col.b + (1 - col.b) * t, 1);
     }
 
-    function darken(hex, t) {
-        if (!hex || hex.length < 7) return hex;
-        var r = parseInt(hex.substring(1, 3), 16) / 255;
-        var g = parseInt(hex.substring(3, 5), 16) / 255;
-        var b = parseInt(hex.substring(5, 7), 16) / 255;
-        return Qt.rgba(r * (1 - t), g * (1 - t), b * (1 - t), 1);
+    function darken(c, t) {
+        var col = (typeof c === "string") ? Qt.color(c) : c;
+        if (!col) return c;
+        return Qt.rgba(col.r * (1 - t),
+                       col.g * (1 - t),
+                       col.b * (1 - t), 1);
     }
 }
