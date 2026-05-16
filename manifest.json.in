@@ -1,0 +1,15 @@
+{
+    "name": "ragassistant.ragassistant",
+    "description": "RAG Assistant",
+    "architecture": "$ENV{ARCH}",
+    "title": "RAG Assistant",
+    "hooks": {
+        "ragassistant": {
+            "apparmor": "ragassistant.apparmor",
+            "desktop":  "ragassistant.desktop"
+        }
+    },
+    "version": "1.0.0",
+    "maintainer": "MAURICIO ARIAS <mauricio@mawesi.net>",
+    "framework" : "$ENV{CLICK_FRAMEWORK}"
+}

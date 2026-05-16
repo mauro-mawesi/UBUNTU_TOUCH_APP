@@ -1,0 +1,101 @@
+# Spanish translation for ragassistant.
+# Copyright (C) 2026 MAURICIO ARIAS
+# This file is distributed under the same license as the ragassistant package.
+msgid ""
+msgstr ""
+"Project-Id-Version: ragassistant.ragassistant\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-16 10:57+0000\n"
+"PO-Revision-Date: 2026-05-16 11:00+0000\n"
+"Last-Translator: MAURICIO ARIAS <mauricio@mawesi.net>\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "RAG Assistant"
+msgstr "Asistente RAG"
+
+msgid "New chat"
+msgstr "Nueva conversación"
+
+msgid "Settings"
+msgstr "Configuración"
+
+msgid "Set your OpenRouter API Key in Settings."
+msgstr "Configura tu API Key de OpenRouter en Configuración."
+
+msgid "Ask anything about your documents"
+msgstr "Pregunta lo que quieras sobre tus documentos"
+
+msgid ""
+"Your assistant retrieves relevant context from the knowledge base and "
+"answers using a language model."
+msgstr ""
+"Tu asistente recupera contexto relevante desde la base de conocimiento y "
+"responde usando un modelo de lenguaje."
+
+msgid "Summarize the working hours policy"
+msgstr "Resume la política de jornada laboral"
+
+msgid "From the internal regulations"
+msgstr "Del reglamento interno"
+
+msgid "What are the security and JWT requirements?"
+msgstr "¿Cuáles son los requisitos de seguridad y JWT?"
+
+msgid "From operations and security docs"
+msgstr "De los documentos de operaciones y seguridad"
+
+msgid "List the vacation rules"
+msgstr "Enumera las reglas de vacaciones"
+
+msgid "From HR documents"
+msgstr "De los documentos de recursos humanos"
+
+msgid "Ask about your documents…"
+msgstr "Pregunta sobre tus documentos…"
+
+msgid "Language model"
+msgstr "Modelo de lenguaje"
+
+msgid "OpenRouter API Key"
+msgstr "API Key de OpenRouter"
+
+msgid "Model"
+msgstr "Modelo"
+
+msgid "Base URL"
+msgstr "URL base"
+
+msgid "Vector store (Chroma)"
+msgstr "Almacén vectorial (Chroma)"
+
+msgid "Tenant"
+msgstr "Tenant"
+
+msgid "Database"
+msgstr "Base de datos"
+
+msgid "Collection ID"
+msgstr "ID de colección"
+
+msgid "Top K results"
+msgstr "Top K resultados"
+
+msgid "Embeddings (Ollama)"
+msgstr "Embeddings (Ollama)"
+
+msgid "Embedding model"
+msgstr "Modelo de embeddings"
+
+msgid "You"
+msgstr "Tú"
+
+msgid "Assistant"
+msgstr "Asistente"
+
+msgid "System"
+msgstr "Sistema"

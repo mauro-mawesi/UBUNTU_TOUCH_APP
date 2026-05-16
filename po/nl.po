@@ -1,0 +1,101 @@
+# Dutch translation for ragassistant.
+# Copyright (C) 2026 MAURICIO ARIAS
+# This file is distributed under the same license as the ragassistant package.
+msgid ""
+msgstr ""
+"Project-Id-Version: ragassistant.ragassistant\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-16 10:57+0000\n"
+"PO-Revision-Date: 2026-05-16 11:00+0000\n"
+"Last-Translator: MAURICIO ARIAS <mauricio@mawesi.net>\n"
+"Language-Team: Dutch\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "RAG Assistant"
+msgstr "RAG-assistent"
+
+msgid "New chat"
+msgstr "Nieuw gesprek"
+
+msgid "Settings"
+msgstr "Instellingen"
+
+msgid "Set your OpenRouter API Key in Settings."
+msgstr "Stel je OpenRouter API-sleutel in bij Instellingen."
+
+msgid "Ask anything about your documents"
+msgstr "Stel je vraag over je documenten"
+
+msgid ""
+"Your assistant retrieves relevant context from the knowledge base and "
+"answers using a language model."
+msgstr ""
+"Je assistent haalt relevante context op uit de kennisbank en antwoordt "
+"met behulp van een taalmodel."
+
+msgid "Summarize the working hours policy"
+msgstr "Vat het werktijdenbeleid samen"
+
+msgid "From the internal regulations"
+msgstr "Uit het interne reglement"
+
+msgid "What are the security and JWT requirements?"
+msgstr "Wat zijn de beveiligings- en JWT-vereisten?"
+
+msgid "From operations and security docs"
+msgstr "Uit operationele en beveiligingsdocumenten"
+
+msgid "List the vacation rules"
+msgstr "Geef een overzicht van de vakantieregels"
+
+msgid "From HR documents"
+msgstr "Uit HR-documenten"
+
+msgid "Ask about your documents…"
+msgstr "Stel een vraag over je documenten…"
+
+msgid "Language model"
+msgstr "Taalmodel"
+
+msgid "OpenRouter API Key"
+msgstr "OpenRouter API-sleutel"
+
+msgid "Model"
+msgstr "Model"
+
+msgid "Base URL"
+msgstr "Basis-URL"
+
+msgid "Vector store (Chroma)"
+msgstr "Vectoropslag (Chroma)"
+
+msgid "Tenant"
+msgstr "Tenant"
+
+msgid "Database"
+msgstr "Database"
+
+msgid "Collection ID"
+msgstr "Collectie-ID"
+
+msgid "Top K results"
+msgstr "Top K resultaten"
+
+msgid "Embeddings (Ollama)"
+msgstr "Embeddings (Ollama)"
+
+msgid "Embedding model"
+msgstr "Embeddingmodel"
+
+msgid "You"
+msgstr "Jij"
+
+msgid "Assistant"
+msgstr "Assistent"
+
+msgid "System"
+msgstr "Systeem"
