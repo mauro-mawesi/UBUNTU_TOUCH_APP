@@ -119,13 +119,13 @@ Page {
               label: i18nApp.tr("Speech to text (Whisper)"),
               method: "GET",
               url: (appSettings.whisperUrl || "").replace(/\/+$/, "") + "/v1/models",
-              auth: null,
+              auth: appSettings.whisperApiKey.length > 0 ? "Bearer " + appSettings.whisperApiKey : null,
               state: "checking", detail: "" },
             { key: "tts",
               label: i18nApp.tr("Text to speech (Kokoro)"),
               method: "GET",
               url: (appSettings.ttsUrl || "").replace(/\/+$/, "") + "/v1/audio/voices",
-              auth: null,
+              auth: appSettings.ttsApiKey.length > 0 ? "Bearer " + appSettings.ttsApiKey : null,
               state: "checking", detail: "" }
         ];
         healthRows = rows;

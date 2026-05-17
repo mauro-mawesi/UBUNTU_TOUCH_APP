@@ -27,6 +27,8 @@ Page {
     property var topics: []
     property bool revealApiKey: false
     property bool revealGeminiKey: false
+    property bool revealWhisperKey: false
+    property bool revealTtsKey: false
 
     function refreshTopics() {
         topics = Store.listTopics();
@@ -911,6 +913,81 @@ Page {
                 }
             }
 
+            // ---------- Voice (STT) ----------
+            Card {
+                Layout.fillWidth: true
+                appTheme: page.appTheme
+                i18nApp: page.i18nApp
+                sectionTitleKey: "Voice (STT)"
+                icon: "audio-input-microphone-symbolic"
+                collapsible: true
+                collapsed: true
+
+                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Base URL" }
+                StyledField {
+                    Layout.fillWidth: true
+                    appTheme: page.appTheme
+                    text: appSettings.whisperUrl
+                    onTextChanged: if (text.length === 0 || /^https?:\/\//i.test(text)) appSettings.whisperUrl = text;
+                }
+
+                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Model" }
+                StyledField {
+                    Layout.fillWidth: true
+                    appTheme: page.appTheme
+                    placeholderText: "Systran/faster-whisper-small"
+                    text: appSettings.whisperModel
+                    onTextChanged: appSettings.whisperModel = text
+                }
+
+                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "API Key (optional)" }
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: units.gu(0.4)
+
+                    StyledField {
+                        Layout.fillWidth: true
+                        appTheme: page.appTheme
+                        echoMode: page.revealWhisperKey ? TextInput.Normal : TextInput.Password
+                        text: appSettings.whisperApiKey
+                        onTextChanged: appSettings.whisperApiKey = text
+                    }
+                    Rectangle {
+                        Layout.preferredWidth: units.gu(4.5)
+                        Layout.preferredHeight: units.gu(4.5)
+                        Layout.alignment: Qt.AlignVCenter
+                        radius: appTheme.radiusMd
+                        color: whisperRevealMouse.containsMouse ? appTheme.surfaceHover : appTheme.surfaceAlt
+                        border.color: appTheme.border
+                        border.width: 1
+                        Behavior on color { ColorAnimation { duration: 120 } }
+
+                        Icon {
+                            anchors.centerIn: parent
+                            width: units.gu(1.8); height: width
+                            name: page.revealWhisperKey ? "view-off" : "view-on"
+                            color: appTheme.textSecondary
+                        }
+                        MouseArea {
+                            id: whisperRevealMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: page.revealWhisperKey = !page.revealWhisperKey
+                        }
+                    }
+                }
+                Label {
+                    Layout.fillWidth: true
+                    Layout.topMargin: units.gu(0.2)
+                    text: i18nApp.tr("Key is saved unencrypted on this device.")
+                    color: appTheme.textMuted
+                    textSize: Label.XSmall
+                    wrapMode: Text.Wrap
+                    visible: appSettings.whisperApiKey.length > 0
+                }
+            }
+
             // ---------- Voice (TTS) ----------
             Card {
                 Layout.fillWidth: true
@@ -936,6 +1013,53 @@ Page {
                     placeholderText: "af_bella"
                     text: appSettings.ttsVoice
                     onTextChanged: appSettings.ttsVoice = text
+                }
+
+                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "API Key (optional)" }
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: units.gu(0.4)
+
+                    StyledField {
+                        Layout.fillWidth: true
+                        appTheme: page.appTheme
+                        echoMode: page.revealTtsKey ? TextInput.Normal : TextInput.Password
+                        text: appSettings.ttsApiKey
+                        onTextChanged: appSettings.ttsApiKey = text
+                    }
+                    Rectangle {
+                        Layout.preferredWidth: units.gu(4.5)
+                        Layout.preferredHeight: units.gu(4.5)
+                        Layout.alignment: Qt.AlignVCenter
+                        radius: appTheme.radiusMd
+                        color: ttsRevealMouse.containsMouse ? appTheme.surfaceHover : appTheme.surfaceAlt
+                        border.color: appTheme.border
+                        border.width: 1
+                        Behavior on color { ColorAnimation { duration: 120 } }
+
+                        Icon {
+                            anchors.centerIn: parent
+                            width: units.gu(1.8); height: width
+                            name: page.revealTtsKey ? "view-off" : "view-on"
+                            color: appTheme.textSecondary
+                        }
+                        MouseArea {
+                            id: ttsRevealMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: page.revealTtsKey = !page.revealTtsKey
+                        }
+                    }
+                }
+                Label {
+                    Layout.fillWidth: true
+                    Layout.topMargin: units.gu(0.2)
+                    text: i18nApp.tr("Key is saved unencrypted on this device.")
+                    color: appTheme.textMuted
+                    textSize: Label.XSmall
+                    wrapMode: Text.Wrap
+                    visible: appSettings.ttsApiKey.length > 0
                 }
 
                 RowLayout {

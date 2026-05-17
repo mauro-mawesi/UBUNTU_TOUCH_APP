@@ -33,7 +33,8 @@ void WhisperClient::cancel() {
 }
 
 void WhisperClient::transcribe(const QString &serverUrl, const QString &filePath,
-                                const QString &language, const QString &model) {
+                                const QString &language, const QString &model,
+                                const QString &apiKey) {
     QFile *file = new QFile(filePath);
     if (!file->open(QIODevice::ReadOnly)) {
         emit errorOccurred(QStringLiteral("Cannot open file: ") + filePath);
@@ -86,6 +87,9 @@ void WhisperClient::transcribe(const QString &serverUrl, const QString &filePath
              << "lang=" << language;
 
     QNetworkRequest req(url);
+    if (!apiKey.isEmpty()) {
+        req.setRawHeader("Authorization", QByteArray("Bearer ") + apiKey.toUtf8());
+    }
     QNetworkReply *reply = m_nam.post(req, multiPart);
     multiPart->setParent(reply);
     m_currentReply = reply;

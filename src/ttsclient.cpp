@@ -32,7 +32,8 @@ void TtsClient::cancel() {
 }
 
 void TtsClient::synthesize(const QString &serverUrl, const QString &text,
-                            const QString &voice, const QString &format) {
+                            const QString &voice, const QString &format,
+                            const QString &apiKey) {
     if (text.trimmed().isEmpty()) {
         emit errorOccurred(QStringLiteral("Empty text"));
         return;
@@ -57,6 +58,9 @@ void TtsClient::synthesize(const QString &serverUrl, const QString &text,
 
     QNetworkRequest req(url);
     req.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+    if (!apiKey.isEmpty()) {
+        req.setRawHeader("Authorization", QByteArray("Bearer ") + apiKey.toUtf8());
+    }
 
     QNetworkReply *reply = m_nam.post(req, QJsonDocument(body).toJson(QJsonDocument::Compact));
     m_currentReply = reply;

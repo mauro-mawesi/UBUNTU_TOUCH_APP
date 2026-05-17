@@ -18,7 +18,8 @@ public:
 
 public slots:
     void transcribe(const QString &serverUrl, const QString &filePath,
-                    const QString &language, const QString &model);
+                    const QString &language, const QString &model,
+                    const QString &apiKey = QString());
     // Abort an in-flight transcription. Safe to call when idle.
     void cancel();
 

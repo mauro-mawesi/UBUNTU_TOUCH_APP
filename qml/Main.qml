@@ -91,12 +91,14 @@ MainView {
         property string geminiEmbedModel: "gemini-embedding-2"
         property string geminiEmbedUrl: "https://generativelanguage.googleapis.com/v1beta"
 
-        property string whisperUrl: "http://172.28.18.200:3011"
+        property string whisperUrl: "https://whisper.mawesi.online"
         property string whisperModel: "Systran/faster-whisper-small"
+        property string whisperApiKey: ""
 
-        property string ttsUrl: "http://172.28.18.200:8880"
+        property string ttsUrl: "https://kokoro.mawesi.online"
         property string ttsVoice: ""   // empty = auto by language
         property bool ttsAutoSpeak: false
+        property string ttsApiKey: ""
     }
 
     PageStack {

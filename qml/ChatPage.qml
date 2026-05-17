@@ -235,7 +235,8 @@ Page {
         onRecordingFinished: {
             console.log("[mic] recording finished, file=" + filePath);
             whisper.transcribe(appSettings.whisperUrl, filePath,
-                               i18nApp.language, appSettings.whisperModel);
+                               i18nApp.language, appSettings.whisperModel,
+                               appSettings.whisperApiKey);
         }
         onErrorOccurred: {
             console.log("[mic] recorder error: " + message);
@@ -281,7 +282,8 @@ Page {
         }
         speakingIndex = idx;
         tts.synthesize(appSettings.ttsUrl, msg.content,
-                       voiceForLanguage(i18nApp.language), "mp3");
+                       voiceForLanguage(i18nApp.language), "mp3",
+                       appSettings.ttsApiKey);
     }
 
     function stopSpeaking() {

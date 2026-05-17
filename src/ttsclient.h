@@ -18,7 +18,8 @@ public:
 
 public slots:
     void synthesize(const QString &serverUrl, const QString &text,
-                    const QString &voice, const QString &format);
+                    const QString &voice, const QString &format,
+                    const QString &apiKey = QString());
     void cancel();
 
 signals:
