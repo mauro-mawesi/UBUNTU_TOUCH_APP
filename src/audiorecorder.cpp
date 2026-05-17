@@ -11,6 +11,32 @@
 AudioRecorder::AudioRecorder(QObject *parent)
     : QObject(parent), m_recorder(new QAudioRecorder(this))
 {
+    // Mirror ttsclient's tts_* sweep: if a previous run crashed between
+    // start() and the WhisperClient upload, rec_*.{wav,ogg,mp3,dat} files
+    // pile up in CacheLocation. Best-effort cleanup at startup keeps the
+    // cache bounded — the WhisperClient itself deletes the file post-upload,
+    // so we only ever expect leftovers from abnormal exits.
+    {
+        const QString dir = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+        QDir cacheDir(dir);
+        const QStringList stale = cacheDir.entryList(
+            QStringList() << QStringLiteral("rec_*"), QDir::Files);
+        for (const QString &name : stale) cacheDir.remove(name);
+    }
+
+    // Probe input availability once. Empty under clickable desktop (Docker
+    // has no audio device); the QML side reads `available` to grey out the
+    // mic button + show an Accessible.description tooltip before the user
+    // taps. `audioInputs()` is the QAudioRecorder API that Qt 5.12 exposes
+    // for this — QAudioDeviceInfo::availableDevices works too but couples
+    // us to multimedia internals.
+    {
+        const QStringList inputs = m_recorder->audioInputs();
+        m_available = !inputs.isEmpty();
+        qDebug() << "[AudioRecorder] inputs:" << inputs
+                 << "available=" << m_available;
+    }
+
     configureSettings();
 
     connect(m_recorder, &QMediaRecorder::stateChanged,
