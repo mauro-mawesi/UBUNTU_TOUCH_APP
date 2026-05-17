@@ -78,6 +78,14 @@ Page {
         var msgs = Store.getMessages(id);
         for (var i = 0; i < msgs.length; i++) {
             var m = msgs[i];
+            // Defensive: skip user/assistant rows with empty content (DB
+            // residue from a crash mid-_runAsk or a legacy ingest bug).
+            // MessageBubble already hides them visually, but the empty turn
+            // would leak into LLM history and waste a round-trip.
+            if ((m.role === "user" || m.role === "assistant")
+                && (!m.content || String(m.content).trim().length === 0)) {
+                continue;
+            }
             messagesModel.append({
                 role: m.role,
                 content: m.content,
@@ -474,6 +482,10 @@ Page {
             chromaUrl: appSettings.chromaUrl, tenant: appSettings.tenant, database: appSettings.database,
             collectionId: collectionId, topK: appSettings.topK,
             ollamaUrl: appSettings.ollamaUrl, embedModel: appSettings.embedModel,
+            embedderProvider: appSettings.embedderProvider,
+            geminiApiKey: appSettings.geminiApiKey,
+            geminiEmbedModel: appSettings.geminiEmbedModel,
+            geminiEmbedUrl: appSettings.geminiEmbedUrl,
             language: i18nApp.language,
             topicAddon: topicAddon,
             appTitle: "ragassistant"
@@ -1044,9 +1056,14 @@ Page {
                         }
 
                         // Mic button — ghost/outline so Send remains the only
-                        // filled action in the row.
+                        // filled action in the row. Greyed out (kept in
+                        // layout) when no input device is available, e.g.
+                        // `clickable desktop` running in Docker without audio
+                        // — recorder.available is a one-shot probe at
+                        // AudioRecorder construction, see CLAUDE.md gotcha #9.
                         Rectangle {
                             id: micBtn
+                            readonly property bool _enabled: recorder.available && !whisper.busy
                             Layout.alignment: Qt.AlignVCenter
                             Layout.preferredWidth: units.gu(4.5)
                             Layout.preferredHeight: units.gu(4.5)
@@ -1057,7 +1074,9 @@ Page {
                             border.color: recorder.recording ? appTheme.danger : appTheme.border
                             border.width: 1
                             visible: !page.busy
+                            opacity: recorder.available ? 1.0 : 0.45
                             Behavior on color { ColorAnimation { duration: appTheme.motionFast } }
+                            Behavior on opacity { NumberAnimation { duration: appTheme.motionFast } }
 
                             // Pulsing ring while recording
                             Rectangle {
@@ -1101,7 +1120,7 @@ Page {
 
                             PressEffect {
                                 id: micMouse
-                                enabled: !whisper.busy
+                                enabled: micBtn._enabled
                                 cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
                                 onClicked: {
                                     if (recorder.recording) recorder.stop();
@@ -1112,6 +1131,10 @@ Page {
                             Accessible.name: recorder.recording
                                              ? (i18nApp ? i18nApp.tr("Stop recording") : "Stop recording")
                                              : (i18nApp ? i18nApp.tr("Voice input") : "Voice input")
+                            Accessible.description: recorder.available
+                                                    ? ""
+                                                    : (i18nApp ? i18nApp.tr("Audio not available on this device")
+                                                               : "Audio not available on this device")
                         }
 
                         // Send / stop button — always filled primary (not

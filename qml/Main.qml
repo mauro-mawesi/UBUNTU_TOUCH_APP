@@ -62,6 +62,7 @@ MainView {
         id: appTheme
         mode: appSettings.themeMode
         presetIndex: appSettings.themePresetIndex
+        customAccentColor: appSettings.customAccentColor
     }
 
     Settings {
@@ -69,6 +70,7 @@ MainView {
         property string language: ""
         property string themeMode: "dark"
         property int themePresetIndex: 0
+        property string customAccentColor: "#6366f1"
 
         property string apiKey: ""
         property string model: "google/gemini-2.5-pro"
@@ -83,6 +85,11 @@ MainView {
 
         property string ollamaUrl: "http://172.28.18.200:11434"
         property string embedModel: "nomic-embed-text"
+
+        property string embedderProvider: "ollama"
+        property string geminiApiKey: ""
+        property string geminiEmbedModel: "gemini-embedding-2"
+        property string geminiEmbedUrl: "https://generativelanguage.googleapis.com/v1beta"
 
         property string whisperUrl: "http://172.28.18.200:3011"
         property string whisperModel: "Systran/faster-whisper-small"

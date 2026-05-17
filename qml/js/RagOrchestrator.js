@@ -41,12 +41,18 @@ function defaultSystemPrompt(language, topicAddon) {
 }
 
 // settings: { chromaUrl, tenant, database, collectionId, ollamaUrl, embedModel, topK,
+//             embedderProvider, geminiApiKey, geminiEmbedModel, geminiEmbedUrl,
 //             openrouterUrl, apiKey, model, appTitle, topicAddon, tools, toolRegistry }
 // history: [{ role, content }, ...]  (does NOT include the new user message)
 // userMessage: string
 // callbacks: onSources(items), onDelta(text), onDone(fullText),
 //            onToolStart(call), onToolDone(call, result), onError(msg)
 function ask(settings, history, userMessage, callbacks) {
+    if (settings.embedderProvider === "gemini" && (!settings.geminiApiKey || settings.geminiApiKey === "")) {
+        if (callbacks.onError) callbacks.onError("Gemini embedder selected but API key is empty. Configure it in Settings → Embeddings.");
+        return;
+    }
+
     Chroma.retrieve({
         chromaUrl: settings.chromaUrl,
         tenant: settings.tenant || "default_tenant",
@@ -54,6 +60,10 @@ function ask(settings, history, userMessage, callbacks) {
         collectionId: settings.collectionId,
         ollamaUrl: settings.ollamaUrl,
         embedModel: settings.embedModel || "nomic-embed-text",
+        embedderProvider: settings.embedderProvider || "ollama",
+        geminiApiKey: settings.geminiApiKey || "",
+        geminiEmbedModel: settings.geminiEmbedModel || "gemini-embedding-2",
+        geminiEmbedUrl: settings.geminiEmbedUrl || "https://generativelanguage.googleapis.com/v1beta",
         topK: settings.topK || 5
     }, userMessage,
     function(items) {

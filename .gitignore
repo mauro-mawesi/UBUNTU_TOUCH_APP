@@ -1,2 +1,8 @@
 /build/
 /.clickable/
+
+# Qt Settings persistence — contiene API keys en plaintext.
+# Normalmente vive en ~/.config/ragassistant.ragassistant/ fuera del repo,
+# pero ignorado acá defensivamente por si alguna vez se copia / exporta.
+*.conf
+

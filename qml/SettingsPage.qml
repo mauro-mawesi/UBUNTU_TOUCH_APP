@@ -1,9 +1,11 @@
 import QtQuick 2.7
+import QtGraphicalEffects 1.0
 import Lomiri.Components 1.3
 import Lomiri.Components.Popups 1.3
 import QtQuick.Layouts 1.3
 import "components"
 import "js/Store.js" as Store
+import "js/BrainMetrics.js" as Metrics
 
 Page {
     id: page
@@ -24,6 +26,7 @@ Page {
 
     property var topics: []
     property bool revealApiKey: false
+    property bool revealGeminiKey: false
 
     function refreshTopics() {
         topics = Store.listTopics();
@@ -50,6 +53,46 @@ Page {
 
     function openTopicDelete(topic) {
         PopupUtils.open(topicDeleteDialog, page, { topicRef: topic });
+    }
+
+    // Spawn the colour picker anchored on the Custom chip. We park the
+    // target preset index on the popover so its `chosen` handler knows
+    // which slot to activate after the user commits.
+    function openColorPicker(presetIdx, caller) {
+        var seed = appSettings.customAccentColor && appSettings.customAccentColor.length > 0
+                   ? appSettings.customAccentColor
+                   : appTheme.presets[presetIdx].primary;
+        PopupUtils.open(colorPickerDialog, caller || page, {
+            appTheme: page.appTheme,
+            i18nApp: page.i18nApp,
+            initialHex: seed,
+            targetIndex: presetIdx
+        });
+    }
+
+    Component {
+        id: colorPickerDialog
+        ColorPickerPopover {
+            id: cp
+            property int targetIndex: -1
+            onChosen: {
+                // Apply the change directly — don't wait for the sweep's
+                // midpoint signal. AppTheme's 520ms color Behavior on
+                // _primaryAnim morphs every shade smoothly underneath the
+                // beam, so the visual still reads as a coordinated swap
+                // even when the mutation lands immediately.
+                appSettings.customAccentColor = hex;
+                if (appSettings.themePresetIndex !== targetIndex) {
+                    appSettings.themePresetIndex = targetIndex;
+                }
+                if (page.accentSweep && !page.chatBusy) {
+                    // No deferred mutation needed; the sweep is purely a
+                    // visual flourish on top of the morph.
+                    page.accentSweep.pendingIndex = -1;
+                    page.accentSweep.run(hex, appTheme.deriveSecondary(hex));
+                }
+            }
+        }
     }
 
     Rectangle {
@@ -187,11 +230,28 @@ Page {
                     spacing: units.gu(0.8)
 
                     Repeater {
+                        id: presetRepeater
                         model: appTheme.presets
                         Rectangle {
+                            id: chipRect
+                            // The Custom slot is identified by position — it's
+                            // always the last entry in `presets`. Reading
+                            // `modelData.isCustom` was unreliable in the
+                            // Repeater context (the rainbow LinearGradient
+                            // ended up painted on every chip; see the audit
+                            // screenshot 5.png).
+                            readonly property bool isCustomSlot:
+                                index === appTheme.presets.length - 1
+
                             width: units.gu(5.5)
                             height: units.gu(5.5)
                             radius: width / 2
+                            clip: true
+                            // Built-in presets render as a primary→secondary
+                            // duo. The Custom slot has placeholder values
+                            // here that are covered by the rainbow overlay.
+                            // (Don't set `color`: it overrides `gradient`
+                            // and leaves the chip empty.)
                             gradient: Gradient {
                                 GradientStop { position: 0; color: modelData.primary }
                                 GradientStop { position: 1; color: modelData.secondary }
@@ -199,6 +259,44 @@ Page {
                             border.color: appSettings.themePresetIndex === index
                                           ? appTheme.text : "transparent"
                             border.width: 3
+
+                            // Rainbow fill for the Custom chip — diagonal
+                            // LinearGradient through the full HSV ring,
+                            // clipped by the parent's circular radius.
+                            LinearGradient {
+                                anchors.fill: parent
+                                visible: chipRect.isCustomSlot
+                                start: Qt.point(0, 0)
+                                end:   Qt.point(parent.width, parent.height)
+                                gradient: Gradient {
+                                    GradientStop { position: 0.00; color: "#ef4444" }
+                                    GradientStop { position: 0.17; color: "#f59e0b" }
+                                    GradientStop { position: 0.33; color: "#84cc16" }
+                                    GradientStop { position: 0.50; color: "#06b6d4" }
+                                    GradientStop { position: 0.67; color: "#6366f1" }
+                                    GradientStop { position: 0.83; color: "#a855f7" }
+                                    GradientStop { position: 1.00; color: "#ec4899" }
+                                }
+                            }
+
+                            // '+' badge centred on the Custom chip. Replaced
+                            // by the 'ok' tick when Custom is the active slot.
+                            Rectangle {
+                                visible: chipRect.isCustomSlot
+                                         && appSettings.themePresetIndex !== index
+                                anchors.centerIn: parent
+                                width: units.gu(2.6); height: width
+                                radius: width / 2
+                                color: appTheme.surface
+                                border.color: appTheme.text
+                                border.width: 1
+                                Icon {
+                                    anchors.centerIn: parent
+                                    width: parent.width * 0.65; height: width
+                                    name: "add"
+                                    color: appTheme.text
+                                }
+                            }
 
                             Icon {
                                 visible: appSettings.themePresetIndex === index
@@ -210,14 +308,15 @@ Page {
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
-                                // Diagonal sweep overlays a beam of light
-                                // in the new accent and applies the mutation
-                                // at midpoint; AppTheme's color Behavior
-                                // morphs every derived shade underneath.
-                                // Direct mutation when the chat is busy so
-                                // a streaming-frame snapshot doesn't freeze
-                                // mid-response.
+                                // Custom: always open the picker on tap so
+                                // re-tapping the active Custom chip lets the
+                                // user adjust their colour. Other presets:
+                                // sweep+apply unless chat is busy.
                                 onClicked: {
+                                    if (chipRect.isCustomSlot) {
+                                        page.openColorPicker(index, chipRect);
+                                        return;
+                                    }
                                     if (appSettings.themePresetIndex === index) return;
                                     if (page.accentSweep && !page.chatBusy) {
                                         page.accentSweep.pendingIndex = index;
@@ -341,6 +440,18 @@ Page {
                     }
                 }
 
+                // The key lives plaintext in Qt.labs.settings (.conf in
+                // ~/.config/ragassistant.ragassistant/). Surface this to the
+                // user so they can decide rotation cadence / scope-limit it.
+                Label {
+                    Layout.fillWidth: true
+                    Layout.topMargin: units.gu(0.2)
+                    text: i18nApp.tr("Key is saved unencrypted on this device.")
+                    color: appTheme.textMuted
+                    textSize: Label.XSmall
+                    wrapMode: Text.Wrap
+                }
+
                 FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Model" }
                 StyledField {
                     Layout.fillWidth: true
@@ -426,11 +537,40 @@ Page {
                 }
 
                 FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Collection ID" }
-                StyledField {
+                RowLayout {
                     Layout.fillWidth: true
-                    appTheme: page.appTheme
-                    text: appSettings.collectionId
-                    onTextChanged: appSettings.collectionId = text
+                    spacing: units.gu(0.4)
+
+                    StyledField {
+                        Layout.fillWidth: true
+                        appTheme: page.appTheme
+                        text: appSettings.collectionId
+                        onTextChanged: appSettings.collectionId = text
+                    }
+                    Rectangle {
+                        Layout.preferredWidth: units.gu(4.5)
+                        Layout.preferredHeight: units.gu(4.5)
+                        Layout.alignment: Qt.AlignVCenter
+                        radius: appTheme.radiusMd
+                        color: pickMouse.containsMouse ? appTheme.surfaceHover : appTheme.surfaceAlt
+                        border.color: appTheme.border
+                        border.width: 1
+                        Behavior on color { ColorAnimation { duration: 120 } }
+
+                        Icon {
+                            anchors.centerIn: parent
+                            width: units.gu(1.8); height: width
+                            name: "view-list-symbolic"
+                            color: appTheme.textSecondary
+                        }
+                        MouseArea {
+                            id: pickMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: PopupUtils.open(collectionPicker, page)
+                        }
+                    }
                 }
 
                 FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Top K results" }
@@ -451,25 +591,164 @@ Page {
                 Layout.fillWidth: true
                 appTheme: page.appTheme
                 i18nApp: page.i18nApp
-                sectionTitleKey: "Embeddings (Ollama)"
+                sectionTitleKey: "Embeddings"
                 icon: "view-list-symbolic"
                 collapsible: true
                 collapsed: true
 
-                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Base URL" }
-                StyledField {
+                FieldLabel {
                     Layout.fillWidth: true
+                    Layout.topMargin: units.gu(0.5)
                     appTheme: page.appTheme
-                    text: appSettings.ollamaUrl
-                    onTextChanged: if (text.length === 0 || /^https?:\/\//i.test(text)) appSettings.ollamaUrl = text;
+                    i18nApp: page.i18nApp
+                    textKey: "Embedding provider"
                 }
 
-                FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Embedding model" }
-                StyledField {
+                RowLayout {
                     Layout.fillWidth: true
-                    appTheme: page.appTheme
-                    text: appSettings.embedModel
-                    onTextChanged: appSettings.embedModel = text
+                    spacing: units.gu(0.6)
+
+                    Repeater {
+                        model: [
+                            { code: "ollama", labelKey: "Ollama" },
+                            { code: "gemini", labelKey: "Gemini" }
+                        ]
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: units.gu(4.5)
+                            radius: units.gu(0.8)
+                            color: appSettings.embedderProvider === modelData.code
+                                   ? appTheme.primary
+                                   : (provMouse.containsMouse ? appTheme.surfaceHover : appTheme.surfaceAlt)
+                            border.color: appSettings.embedderProvider === modelData.code
+                                          ? appTheme.secondary : appTheme.border
+                            border.width: 1
+                            Behavior on color { ColorAnimation { duration: 120 } }
+
+                            Label {
+                                anchors.centerIn: parent
+                                text: modelData.labelKey
+                                color: appSettings.embedderProvider === modelData.code
+                                       ? appTheme.textOnPrimary : appTheme.text
+                                textSize: Label.Small
+                                font.bold: appSettings.embedderProvider === modelData.code
+                            }
+                            MouseArea {
+                                id: provMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: appSettings.embedderProvider = modelData.code
+                            }
+                        }
+                    }
+                }
+
+                // ----- Ollama provider fields -----
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: units.gu(0.6)
+                    visible: appSettings.embedderProvider !== "gemini"
+
+                    FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Base URL" }
+                    StyledField {
+                        Layout.fillWidth: true
+                        appTheme: page.appTheme
+                        text: appSettings.ollamaUrl
+                        onTextChanged: if (text.length === 0 || /^https?:\/\//i.test(text)) appSettings.ollamaUrl = text;
+                    }
+
+                    FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Embedding model" }
+                    StyledField {
+                        Layout.fillWidth: true
+                        appTheme: page.appTheme
+                        text: appSettings.embedModel
+                        onTextChanged: appSettings.embedModel = text
+                    }
+                }
+
+                // ----- Gemini provider fields -----
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: units.gu(0.6)
+                    visible: appSettings.embedderProvider === "gemini"
+
+                    FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Gemini API Key" }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: units.gu(0.4)
+
+                        StyledField {
+                            Layout.fillWidth: true
+                            appTheme: page.appTheme
+                            echoMode: page.revealGeminiKey ? TextInput.Normal : TextInput.Password
+                            placeholderText: "AIza..."
+                            text: appSettings.geminiApiKey
+                            onTextChanged: appSettings.geminiApiKey = text
+                        }
+                        Rectangle {
+                            Layout.preferredWidth: units.gu(4.5)
+                            Layout.preferredHeight: units.gu(4.5)
+                            Layout.alignment: Qt.AlignVCenter
+                            radius: appTheme.radiusMd
+                            color: revealGeminiMouse.containsMouse ? appTheme.surfaceHover : appTheme.surfaceAlt
+                            border.color: appTheme.border
+                            border.width: 1
+                            Behavior on color { ColorAnimation { duration: 120 } }
+
+                            Icon {
+                                anchors.centerIn: parent
+                                width: units.gu(1.8); height: width
+                                name: page.revealGeminiKey ? "view-off" : "view-on"
+                                color: appTheme.textSecondary
+                            }
+                            MouseArea {
+                                id: revealGeminiMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: page.revealGeminiKey = !page.revealGeminiKey
+                            }
+                        }
+                    }
+
+                    // Same disclosure as the OpenRouter key: stored plaintext
+                    // in Qt.labs.settings .conf.
+                    Label {
+                        Layout.fillWidth: true
+                        Layout.topMargin: units.gu(0.2)
+                        text: i18nApp.tr("Key is saved unencrypted on this device.")
+                        color: appTheme.textMuted
+                        textSize: Label.XSmall
+                        wrapMode: Text.Wrap
+                    }
+
+                    Label {
+                        Layout.fillWidth: true
+                        Layout.topMargin: units.gu(0.2)
+                        visible: appSettings.geminiApiKey.length === 0
+                        text: i18nApp.tr("API key required for Gemini provider")
+                        color: appTheme.danger ? appTheme.danger : "#ef4444"
+                        textSize: Label.XSmall
+                        wrapMode: Text.Wrap
+                    }
+
+                    FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Gemini embedding model" }
+                    StyledField {
+                        Layout.fillWidth: true
+                        appTheme: page.appTheme
+                        placeholderText: "gemini-embedding-2"
+                        text: appSettings.geminiEmbedModel
+                        onTextChanged: appSettings.geminiEmbedModel = text
+                    }
+
+                    FieldLabel { Layout.fillWidth: true; Layout.topMargin: units.gu(0.5); appTheme: page.appTheme; i18nApp: page.i18nApp; textKey: "Gemini base URL" }
+                    StyledField {
+                        Layout.fillWidth: true
+                        appTheme: page.appTheme
+                        text: appSettings.geminiEmbedUrl
+                        onTextChanged: if (text.length === 0 || /^https?:\/\//i.test(text)) appSettings.geminiEmbedUrl = text;
+                    }
                 }
             }
 
@@ -963,6 +1242,128 @@ Page {
                             PopupUtils.close(dlg);
                         }
                     }
+                }
+            }
+        }
+    }
+
+    // ---- Chroma collection picker dialog ----
+    Component {
+        id: collectionPicker
+        Dialog {
+            id: dlg
+            property var collections: []
+            property string state_: "loading"   // "loading" | "ok" | "fail"
+            property string errorDetail: ""
+
+            title: i18nApp.tr("Pick a collection")
+            text: state_ === "fail" ? (i18nApp.tr("Failed to load") + ": " + errorDetail) : ""
+
+            Component.onCompleted: {
+                Metrics.listChromaCollections(
+                    appSettings.chromaUrl, appSettings.tenant, appSettings.database,
+                    function(items) { dlg.collections = items; dlg.state_ = "ok"; },
+                    function(err)   { dlg.errorDetail = err; dlg.state_ = "fail"; }
+                );
+            }
+
+            Item {
+                width: parent ? parent.width : units.gu(38)
+                height: Math.min(units.gu(40), Math.max(units.gu(6), listCol.implicitHeight))
+
+                Label {
+                    anchors.centerIn: parent
+                    visible: dlg.state_ === "loading"
+                    text: i18nApp.tr("Loading…")
+                    color: appTheme.textMuted
+                    textSize: Label.Small
+                }
+
+                Label {
+                    anchors.centerIn: parent
+                    visible: dlg.state_ === "ok" && dlg.collections.length === 0
+                    text: i18nApp.tr("No collections found")
+                    color: appTheme.textMuted
+                    textSize: Label.Small
+                }
+
+                Flickable {
+                    anchors.fill: parent
+                    visible: dlg.state_ === "ok" && dlg.collections.length > 0
+                    contentHeight: listCol.implicitHeight
+                    clip: true
+
+                    ColumnLayout {
+                        id: listCol
+                        width: parent.width
+                        spacing: units.gu(0.4)
+
+                        Repeater {
+                            model: dlg.collections
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: units.gu(7)
+                                radius: units.gu(0.8)
+                                color: appSettings.collectionId === modelData.id
+                                       ? appTheme.primary
+                                       : (rowMouse.containsMouse ? appTheme.surfaceHover : appTheme.surfaceAlt)
+                                border.color: appSettings.collectionId === modelData.id
+                                              ? appTheme.secondary : appTheme.border
+                                border.width: 1
+                                Behavior on color { ColorAnimation { duration: 120 } }
+
+                                ColumnLayout {
+                                    anchors {
+                                        left: parent.left; right: parent.right
+                                        verticalCenter: parent.verticalCenter
+                                        leftMargin: units.gu(1); rightMargin: units.gu(1)
+                                    }
+                                    spacing: units.gu(0.1)
+
+                                    Label {
+                                        Layout.fillWidth: true
+                                        text: modelData.name || "(unnamed)"
+                                        color: appSettings.collectionId === modelData.id
+                                               ? appTheme.textOnPrimary : appTheme.text
+                                        textSize: Label.Small
+                                        font.bold: true
+                                        elide: Text.ElideRight
+                                    }
+                                    Label {
+                                        Layout.fillWidth: true
+                                        text: {
+                                            var dim = modelData.dimension !== "" ? (modelData.dimension + "d · ") : "";
+                                            var emb = (modelData.metadata && modelData.metadata["embedder_id"]) || "";
+                                            return dim + (emb.length > 0 ? emb + " · " : "") + modelData.id;
+                                        }
+                                        color: appSettings.collectionId === modelData.id
+                                               ? appTheme.textOnPrimary : appTheme.textMuted
+                                        textSize: Label.XSmall
+                                        elide: Text.ElideMiddle
+                                    }
+                                }
+
+                                MouseArea {
+                                    id: rowMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        appSettings.collectionId = modelData.id;
+                                        PopupUtils.close(dlg);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Row {
+                spacing: units.gu(1)
+                Button {
+                    text: i18nApp.tr("Cancel")
+                    onClicked: PopupUtils.close(dlg)
                 }
             }
         }

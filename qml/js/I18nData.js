@@ -26,7 +26,16 @@ var dictionaries = {
         "Collection ID": "Collection ID",
         "Top K results": "Top K results",
         "Embeddings (Ollama)": "Embeddings (Ollama)",
+        "Embeddings": "Embeddings",
+        "Embedding provider": "Embedding provider",
         "Embedding model": "Embedding model",
+        "Gemini API Key": "Gemini API Key",
+        "Gemini embedding model": "Gemini embedding model",
+        "Gemini base URL": "Gemini base URL",
+        "API key required for Gemini provider": "API key required for Gemini provider",
+        "Pick a collection": "Pick a collection",
+        "No collections found": "No collections found",
+        "Failed to load": "Failed to load",
         "You": "You",
         "Assistant": "Assistant",
         "System": "System",
@@ -95,7 +104,6 @@ var dictionaries = {
         "Enter to send · Shift+Enter for newline": "Enter to send · Shift+Enter for newline",
         "Attach a file": "Attach a file",
         "Coming soon": "Coming soon",
-        "Auto": "Auto",
         "Jump to latest": "Jump to latest",
         "Stop recording": "Stop recording",
         "Voice input": "Voice input",
@@ -137,7 +145,11 @@ var dictionaries = {
         "Local storage is busy. Retry in a moment.":
             "Local storage is busy. Retry in a moment.",
         "Couldn't save part of the conversation.":
-            "Couldn't save part of the conversation."
+            "Couldn't save part of the conversation.",
+        "Pick a colour": "Pick a colour",
+        "Apply": "Apply",
+        "Key is saved unencrypted on this device.": "Key is saved unencrypted on this device.",
+        "Audio not available on this device": "Audio not available on this device"
     },
     "es": {
         "RAG Assistant": "Asistente RAG",
@@ -164,7 +176,16 @@ var dictionaries = {
         "Collection ID": "ID de colección",
         "Top K results": "Top K resultados",
         "Embeddings (Ollama)": "Embeddings (Ollama)",
+        "Embeddings": "Embeddings",
+        "Embedding provider": "Proveedor de embeddings",
         "Embedding model": "Modelo de embeddings",
+        "Gemini API Key": "Clave API de Gemini",
+        "Gemini embedding model": "Modelo de embedding Gemini",
+        "Gemini base URL": "URL base de Gemini",
+        "API key required for Gemini provider": "Se requiere clave API para el proveedor Gemini",
+        "Pick a collection": "Elegir una colección",
+        "No collections found": "No se encontraron colecciones",
+        "Failed to load": "Error al cargar",
         "You": "Tú",
         "Assistant": "Asistente",
         "System": "Sistema",
@@ -233,7 +254,6 @@ var dictionaries = {
         "Enter to send · Shift+Enter for newline": "Enter para enviar · Shift+Enter para nueva línea",
         "Attach a file": "Adjuntar archivo",
         "Coming soon": "Próximamente",
-        "Auto": "Auto",
         "Jump to latest": "Ir al final",
         "Stop recording": "Detener grabación",
         "Voice input": "Entrada de voz",
@@ -275,7 +295,11 @@ var dictionaries = {
         "Local storage is busy. Retry in a moment.":
             "El almacenamiento local está ocupado. Inténtalo en un momento.",
         "Couldn't save part of the conversation.":
-            "No pude guardar parte de la conversación."
+            "No pude guardar parte de la conversación.",
+        "Pick a colour": "Elige un color",
+        "Apply": "Aplicar",
+        "Key is saved unencrypted on this device.": "La clave se guarda sin cifrar en este dispositivo.",
+        "Audio not available on this device": "Audio no disponible en este dispositivo"
     },
     "nl": {
         "RAG Assistant": "RAG-assistent",
@@ -302,7 +326,16 @@ var dictionaries = {
         "Collection ID": "Collectie-ID",
         "Top K results": "Top K resultaten",
         "Embeddings (Ollama)": "Embeddings (Ollama)",
+        "Embeddings": "Embeddings",
+        "Embedding provider": "Embedding-provider",
         "Embedding model": "Embeddingmodel",
+        "Gemini API Key": "Gemini API-sleutel",
+        "Gemini embedding model": "Gemini embedding-model",
+        "Gemini base URL": "Gemini basis-URL",
+        "API key required for Gemini provider": "API-sleutel vereist voor Gemini-provider",
+        "Pick a collection": "Kies een collectie",
+        "No collections found": "Geen collecties gevonden",
+        "Failed to load": "Laden mislukt",
         "You": "Jij",
         "Assistant": "Assistent",
         "System": "Systeem",
@@ -371,7 +404,6 @@ var dictionaries = {
         "Enter to send · Shift+Enter for newline": "Enter om te versturen · Shift+Enter voor nieuwe regel",
         "Attach a file": "Bestand bijvoegen",
         "Coming soon": "Binnenkort beschikbaar",
-        "Auto": "Auto",
         "Jump to latest": "Naar laatste",
         "Stop recording": "Opname stoppen",
         "Voice input": "Steminvoer",
@@ -413,7 +445,11 @@ var dictionaries = {
         "Local storage is busy. Retry in a moment.":
             "Lokale opslag is bezig. Probeer het zo opnieuw.",
         "Couldn't save part of the conversation.":
-            "Een deel van het gesprek kon niet worden opgeslagen."
+            "Een deel van het gesprek kon niet worden opgeslagen.",
+        "Pick a colour": "Kies een kleur",
+        "Apply": "Toepassen",
+        "Key is saved unencrypted on this device.": "De sleutel wordt onversleuteld op dit apparaat opgeslagen.",
+        "Audio not available on this device": "Audio niet beschikbaar op dit apparaat"
     }
 };
 
