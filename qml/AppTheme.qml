@@ -7,15 +7,25 @@ QtObject {
     // ---- configurable ----
     property string mode: "dark"      // "dark" | "light"
     property int presetIndex: 0       // index into `presets`
+    // Hex string for the user-picked colour. Only consulted when the active
+    // preset is the `isCustom: true` slot at the end of `presets`.
+    property string customAccentColor: "#6366f1"
 
     // ---- presets ----
+    // The final entry is a "Custom" sentinel — its colours are unused;
+    // when it's the active preset, primary/secondary are derived from
+    // `customAccentColor` instead.
     readonly property var presets: [
         { name: "Indigo",  primary: "#6366f1", secondary: "#8b5cf6" },
         { name: "Cyan",    primary: "#0ea5e9", secondary: "#06b6d4" },
         { name: "Emerald", primary: "#10b981", secondary: "#14b8a6" },
         { name: "Violet",  primary: "#a855f7", secondary: "#d946ef" },
         { name: "Rose",    primary: "#ec4899", secondary: "#f43f5e" },
-        { name: "Sunset",  primary: "#f97316", secondary: "#ef4444" }
+        { name: "Sunset",  primary: "#f97316", secondary: "#ef4444" },
+        { name: "Amber",   primary: "#f59e0b", secondary: "#fbbf24" },
+        { name: "Sky",     primary: "#0ea5e9", secondary: "#38bdf8" },
+        { name: "Lime",    primary: "#84cc16", secondary: "#a3e635" },
+        { name: "Custom",  primary: "#6366f1", secondary: "#8b5cf6", isCustom: true }
     ]
 
     readonly property bool isDark: mode === "dark"
@@ -25,8 +35,16 @@ QtObject {
     // the new one. Every downstream property derived from primary/secondary
     // (chipBg, bubbleAssistant, gradients, etc.) inherits the animation
     // for free via binding re-evaluation.
-    property color _primaryAnim:   presets[presetIndex].primary
-    property color _secondaryAnim: presets[presetIndex].secondary
+    //
+    // When the active preset is the Custom sentinel, primary comes from
+    // `customAccentColor` and secondary is derived via a hue shift so the
+    // duo feel of the other presets is preserved without forcing the user
+    // to pick two colours.
+    readonly property var _activePreset: presets[presetIndex]
+    property color _primaryAnim: _activePreset.isCustom
+            ? customAccentColor : _activePreset.primary
+    property color _secondaryAnim: _activePreset.isCustom
+            ? deriveSecondary(customAccentColor) : _activePreset.secondary
     Behavior on _primaryAnim   { ColorAnimation { duration: 520; easing.type: Easing.InOutCubic } }
     Behavior on _secondaryAnim { ColorAnimation { duration: 520; easing.type: Easing.InOutCubic } }
 
@@ -154,5 +172,55 @@ QtObject {
         return Qt.rgba(col.r * (1 - t),
                        col.g * (1 - t),
                        col.b * (1 - t), 1);
+    }
+
+    // HSV helpers — used by Custom-accent secondary derivation and the
+    // colour picker. Accept normalized [0..1] r,g,b and return [h,s,v]
+    // also in [0..1].
+    function rgbToHsv(r, g, b) {
+        var mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+        var d = mx - mn;
+        var s = (mx === 0) ? 0 : d / mx;
+        var v = mx;
+        var h = 0;
+        if (d !== 0) {
+            if (mx === r)      h = ((g - b) / d) % 6;
+            else if (mx === g) h = (b - r) / d + 2;
+            else               h = (r - g) / d + 4;
+            h /= 6;
+            if (h < 0) h += 1;
+        }
+        return [h, s, v];
+    }
+
+    function hsvToRgb(h, s, v) {
+        var i = Math.floor(h * 6);
+        var f = h * 6 - i;
+        var p = v * (1 - s);
+        var q = v * (1 - f * s);
+        var t = v * (1 - (1 - f) * s);
+        switch (((i % 6) + 6) % 6) {
+            case 0: return [v, t, p];
+            case 1: return [q, v, p];
+            case 2: return [p, v, t];
+            case 3: return [p, q, v];
+            case 4: return [t, p, v];
+            case 5: return [v, p, q];
+        }
+        return [v, v, v];
+    }
+
+    // For Custom accents: shift the chosen colour's hue by ~25° and gently
+    // bump saturation/value so the gradient still feels like an intentional
+    // duo (the same character every built-in preset has).
+    function deriveSecondary(hex) {
+        var c = (typeof hex === "string") ? Qt.color(hex) : hex;
+        if (!c) return primary;
+        var hsv = rgbToHsv(c.r, c.g, c.b);
+        var h = (hsv[0] + 25 / 360) % 1.0;
+        var s = Math.min(1.0, hsv[1] * 1.05);
+        var v = Math.min(1.0, hsv[2] * 1.05);
+        var rgb = hsvToRgb(h, s, v);
+        return Qt.rgba(rgb[0], rgb[1], rgb[2], 1);
     }
 }
